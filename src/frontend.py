@@ -18,6 +18,11 @@ class Frontend:
     def main(self,default_room):
         pygame.init()
 
+        self.menu_pos = None
+        self.last_mouse_time = pygame.time.get_ticks()
+        self.last_mouse_pos = None
+        self.last_mouse_tile_pos = None
+        
         self.backend = Backend()
         self.backend.load(default_room)
 
@@ -50,6 +55,8 @@ class Frontend:
             return 'quit'
         self.update()
         self.draw_all()
+        self.handle_and_draw_menu()
+        pygame.display.flip()
 
     def get_default_tile_size(self):
         return 64,64
@@ -71,24 +78,79 @@ class Frontend:
         objs = self.backend.get_visible_objs()
         
         # TODO: draw non-fixed objs
-        
-        pygame.display.flip()
-    
+            
     def update(self):
         # Update state of backend other than due to events
         pass
 
+    def handle_and_draw_menu(self):
+        hover_delay_ms, hover_off_delay_ms = 200, 200
+        if ( self.menu_pos and self.last_mouse_in_menu_time + hover_off_delay_ms < pygame.time.get_ticks()
+                           and pygame.mouse.get_focused() and not self.is_in_menu(pygame.mouse.get_pos()) ):
+            self.menu_pos = None
+        if ((not self.menu_pos) and self.last_mouse_pos and self.last_mouse_time + hover_delay_ms < pygame.time.get_ticks()
+                and pygame.mouse.get_focused() ):
+            self.menu_pos = self.last_mouse_pos
+            self.menu_obj = self.last_mouse_obj
+            self.last_mouse_in_menu_time = pygame.time.get_ticks()
+        if self.menu_pos:
+            self.draw_menu(*self.menu_pos)
+        
     def handle_events(self):
         for event in pygame.event.get():
-            if event.type == QUIT:
+            if event.type in (MOUSEBUTTONDOWN,MOUSEBUTTONUP,MOUSEMOTION):
+                tile_x, tile_y = tile_pos = (xy / tile_wh for xy, tile_wh in zip(event.pos,self.get_default_tile_size()))
+                tile_base = self.backend.get_map()[tile_y][tile_x].obj()
+                tile_obj = self.backend.get_obj_map().get_obj_at(tile_x,tile_y)
+            if (event.type == QUIT) or (event.type == KEYDOWN and event.key == K_ESCAPE) :
                 return 'quit'
-            elif event.type == KEYDOWN and event.key == K_ESCAPE:
-                return 'quit'
-            elif event.type == MOUSEBUTTONDOWN:
-                pass
-            elif event.type == MOUSEBUTTONUP:
-                pass
-                
+            elif event.type == MOUSEMOTION:
+                if tile_base.is_hoverable() or tile_obj:
+                    # if self.last_mouse_tile_pos != tile_pos:
+                    #     self.last_mouse_tile_pos = tile_pos
+                    #     self.last_mouse_pos = event.pos
+                    self.last_mouse_pos = event.pos
+                    self.last_mouse_time = pygame.time.get_ticks()
+                    self.last_mouse_obj = tile_obj or tile_base
+                else:
+                    self.last_mouse_pos = None
+                    self.last_mouse_tile_pos = None
+                if self.menu_pos and self.is_in_menu(event.pos):
+                    self.last_mouse_in_menu_time = pygame.time.get_ticks()
+    
+    def draw_menu(self,x,y):
+        r1 = Rect(x-20,y-20,40,40)
+        verb_width = 150
+        verb_height = 20
+        verb_vpadding = 10
+        verb_vstride = verb_height+verb_vpadding
+        verb_offset_x, verb_offset_y = -40,+20
+        r_verbs = Rect(x+verb_offset_x,y+verb_offset_y,verb_width,0)
+        
+        desc_font = pygame.font.Font(None,25)
+        desc_text = desc_font.render(self.menu_obj.description,1,(10,10,10),(255,255,255))
+        desc_text.set_alpha(128, RLEACCEL)
+        r_desc = desc_text.get_rect().move(x-20,y-40)
+        self.screen.blit( desc_text, r_desc.topleft )
+        
+        self.menu_hit_rects = {}
+        for idx,(verb,tr,pre,suf) in enumerate(( ('move',True,"Move "," to ..."),
+                                                 ('use', True,"Use "," on ..."))):
+            text = txtlib.Text((verb_width, verb_height), 'freesans')
+            text.text = pre+self.menu_obj.name.lower()+suf
+            text.update()
+            r_verb = text.area.get_rect().move(x-40, y+20+30*idx)
+            self.screen.blit(text.area, r_verb.topleft)
+            r_verbs.h += verb_vstride
+            self.menu_hit_rects[verb] = Struct()
+            self.menu_hit_rects[verb].rect = r_verb
+            self.menu_hit_rects[verb].tr = tr
+        
+        self.menu_rects = (r1, r_verbs) # r_desc
+    
+    def is_in_menu(self,pt):
+        return any( ( rect.collidepoint(pt) for rect in self.menu_rects ) )
+    
     def splash(self):
         welcome_msg="""\
 Cartesianventure sample: Hijinks in the alchemical distillery department

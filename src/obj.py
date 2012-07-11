@@ -7,6 +7,7 @@ class Defs(Bunch):
 class Obj(Bunch):
     def __init__(self,name,description="",graphic_source=None):
         self.update(name=name,description=description,graphic_source=graphic_source)
+        self.hoverable = True
         
     def __hash__(self):
         return hash(self.key)
@@ -16,6 +17,9 @@ class Obj(Bunch):
         
     def get_surface(self,*args):
         return self.graphic_source.get_surface(*args)
+        
+    def is_hoverable(self):
+        return self.hoverable;
 
 def make_objs(**kwargs):
     # return { k:Obj(k,*args) for k,args in kwargs.iteritems()}

@@ -16,6 +16,10 @@
 # Draw floor under walls
 # Transparent walls
 # obj map
+#
+# 11 July 2012
+# 
+# Hover menu
 
 import unittest
 

@@ -39,6 +39,9 @@ class ObjMap:
         obj.y = y
         self.obj_map[y][x] = obj
     
+    def get_obj_at(self,x,y):
+        return self.obj_map[y][x]
+    
     def get_lst_at(self,x,y):
         if self.obj_map[y][x]:
             return (self.obj_map[y][x],)

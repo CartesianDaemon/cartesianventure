@@ -11,7 +11,7 @@ test_make_objs = make_objs(
 )
 
 initial_small_objs = make_objs(
-    crucible  = Obj("Crucible","Stained clay crucible",
+    crucible  = Obj("Crucible","An encrusted clay crucible",
                     graphic_source=GraphicSource("data/img_circ/Bench.bmp",520,41,40,40,colorkey='topleft')),
     bottle_ship     = Obj("Bottle with pirate ship","Conical flask with a teeny-weeny pirate ship constructed inside"),
     bottle_chest    = Obj("Bottle with pirate chest","Conical flask with a teeny-weeny pirate chest constructed inside (the wooden sort), not the tatooed sort)"),
@@ -47,6 +47,9 @@ background_objs = make_objs(
                                     br = GraphicSource("data/img_circ/VILINT.bmp", 40, 41,40,120,colorkey='topleft'),
                                     )),
 )
+
+for obj in background_objs.values():
+    obj.hoverable = False
 
 big_objs = make_objs(
     meter           = Obj("Coin-operated swamp-gas meter",""),
