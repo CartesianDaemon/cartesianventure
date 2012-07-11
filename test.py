@@ -21,6 +21,13 @@
 # 
 # Hover menu
 
+# TODO tidies of hover menus:
+#  - use consistent text rendering based on font.render
+#  - figure out how to get padding with font.render
+#  - change colour when over hit rect
+#  - background for description
+#  - brighter color for following transitive verb box
+
 import unittest
 
 from src.backend import *

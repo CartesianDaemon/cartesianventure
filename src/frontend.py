@@ -22,6 +22,8 @@ class Frontend:
         self.last_mouse_time = pygame.time.get_ticks()
         self.last_mouse_pos = None
         self.last_mouse_tile_pos = None
+        self.menu_hit_idx = None
+        self.following_with_transitive_verb = None
         
         self.backend = Backend()
         self.backend.load(default_room)
@@ -57,6 +59,8 @@ class Frontend:
         self.draw_all()
         self.handle_and_draw_menu()
         pygame.display.flip()
+        sys.stdout.flush()
+
 
     def get_default_tile_size(self):
         return 64,64
@@ -84,6 +88,10 @@ class Frontend:
         pass
 
     def handle_and_draw_menu(self):
+        if self.following_with_transitive_verb:
+            if pygame.mouse.get_focused():
+                self.draw_transitive_menu(*pygame.mouse.get_pos())
+            return
         hover_delay_ms, hover_off_delay_ms = 200, 200
         if ( self.menu_pos and self.last_mouse_in_menu_time + hover_off_delay_ms < pygame.time.get_ticks()
                            and pygame.mouse.get_focused() and not self.is_in_menu(pygame.mouse.get_pos()) ):
@@ -105,18 +113,49 @@ class Frontend:
             if (event.type == QUIT) or (event.type == KEYDOWN and event.key == K_ESCAPE) :
                 return 'quit'
             elif event.type == MOUSEMOTION:
-                if tile_base.is_hoverable() or tile_obj:
-                    # if self.last_mouse_tile_pos != tile_pos:
-                    #     self.last_mouse_tile_pos = tile_pos
-                    #     self.last_mouse_pos = event.pos
-                    self.last_mouse_pos = event.pos
-                    self.last_mouse_time = pygame.time.get_ticks()
-                    self.last_mouse_obj = tile_obj or tile_base
+                if self.following_with_transitive_verb:
+                    self.transitive_verb_object = tile_obj or tile_base
                 else:
-                    self.last_mouse_pos = None
-                    self.last_mouse_tile_pos = None
-                if self.menu_pos and self.is_in_menu(event.pos):
-                    self.last_mouse_in_menu_time = pygame.time.get_ticks()
+                    if tile_base.is_hoverable() or tile_obj:
+                        # if self.last_mouse_tile_pos != tile_pos:
+                        #     self.last_mouse_tile_pos = tile_pos
+                        #     self.last_mouse_pos = event.pos
+                        self.last_mouse_pos = event.pos
+                        self.last_mouse_time = pygame.time.get_ticks()
+                        self.last_mouse_obj = tile_obj or tile_base
+                    else:
+                        self.last_mouse_pos = None
+                        self.last_mouse_tile_pos = None
+                    self.menu_hit_idx = None
+                    if self.menu_pos and self.is_in_menu(event.pos):
+                        self.last_mouse_in_menu_time = pygame.time.get_ticks()
+                        for idx,hit_rect_struct in enumerate(self.menu_hit_rects):
+                            if hit_rect_struct.hit_rect.collidepoint(event.pos):
+                                self.menu_hit_idx = idx
+                                break
+            elif event.type == MOUSEBUTTONDOWN:
+                if self.following_with_transitive_verb:
+                    # Do transitive verb
+                    self.following_with_transitive_verb = None
+                    self.menu_pos = None
+                elif self.menu_pos:
+                    if self.menu_hit_idx is not None:
+                        # Attach verb to mouse cursor
+                        if self.menu_hit_rects[self.menu_hit_idx].tr:
+                            self.following_with_transitive_verb = self.menu_hit_rects[self.menu_hit_idx].verb
+                            self.transitive_verb_object = tile_obj or tile_base
+                        else:
+                            # Do intransitive verb now
+                            pass
+                    else:
+                        self.menu_pos = None
+                        self.last_mouse_pos = None
+                else:
+                    pass
+                    # # Enable to enable menu for floor, but nothing in it atm
+                    # self.last_mouse_pos = event.pos
+                    # self.last_mouse_time = 0
+                    # self.last_mouse_obj = tile_obj or tile_base
     
     def draw_menu(self,x,y):
         r1 = Rect(x-20,y-20,40,40)
@@ -132,22 +171,41 @@ class Frontend:
         desc_text.set_alpha(128, RLEACCEL)
         r_desc = desc_text.get_rect().move(x-20,y-40)
         self.screen.blit( desc_text, r_desc.topleft )
-        
-        self.menu_hit_rects = {}
+        self.menu_hit_rects = []
         for idx,(verb,tr,pre,suf) in enumerate(( ('move',True,"Move "," to ..."),
-                                                 ('use', True,"Use "," on ..."))):
+                                                 ('use', True,"Use "," with ..." ),
+                                                                                    )):
             text = txtlib.Text((verb_width, verb_height), 'freesans')
             text.text = pre+self.menu_obj.name.lower()+suf
             text.update()
             r_verb = text.area.get_rect().move(x-40, y+20+30*idx)
+            if idx == self.menu_hit_idx:
+                r_verb = r_verb.move(2,1)
             self.screen.blit(text.area, r_verb.topleft)
             r_verbs.h += verb_vstride
-            self.menu_hit_rects[verb] = Struct()
-            self.menu_hit_rects[verb].rect = r_verb
-            self.menu_hit_rects[verb].tr = tr
+            hit_rect_struct = Struct()
+            hit_rect_struct.verb = verb
+            hit_rect_struct.hit_rect = r_verb
+            hit_rect_struct.tr = tr
+            self.menu_hit_rects.append(hit_rect_struct)
         
         self.menu_rects = (r1, r_verbs) # r_desc
     
+    def draw_transitive_menu(self,x,y):
+        text = txtlib.Text((150,20), 'freesans')
+        if self.transitive_verb_object != self.menu_obj:
+            object_name = self.transitive_verb_object.name.lower()
+        else:
+            object_name = "..."
+        if self.following_with_transitive_verb == 'use':
+            prep = " with "
+        else:
+            prep = " onto "
+        text.text = self.following_with_transitive_verb.capitalize() + " " + self.menu_obj.name.lower() + prep + object_name
+        text.update()
+        r_verb = text.area.get_rect().move(x-30, y-30)
+        self.screen.blit(text.area, r_verb.topleft)
+       
     def is_in_menu(self,pt):
         return any( ( rect.collidepoint(pt) for rect in self.menu_rects ) )
     
