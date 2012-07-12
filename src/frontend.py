@@ -135,7 +135,7 @@ class Frontend:
                                 break
             elif event.type == MOUSEBUTTONDOWN:
                 if self.following_with_transitive_verb:
-                    # Do transitive verb
+                    self.backend.do(self.following_with_transitive_verb,self.menu_obj,tile_obj or tile_base)
                     self.following_with_transitive_verb = None
                     self.menu_pos = None
                 elif self.menu_pos:
@@ -145,8 +145,7 @@ class Frontend:
                             self.following_with_transitive_verb = self.menu_hit_rects[self.menu_hit_idx].verb
                             self.transitive_verb_object = tile_obj or tile_base
                         else:
-                            # Do intransitive verb now
-                            pass
+                            self.backend.do(self.following_with_transitive_verb,self.menu_obj)
                     else:
                         self.menu_pos = None
                         self.last_mouse_pos = None

@@ -4,7 +4,7 @@ from src.obj import *
 class Layers:
     def __init__(self,*args):
         self._lst = args
-        self._obj = args[-1]
+        self._obj = args[-1] if len(args)>=1 else None
         
     def lst(self):
         return self._lst
@@ -14,6 +14,12 @@ class Layers:
         
     def add_overlays(*args):
         _lst.extend(args)
+        
+    def copy(self):
+        cpy = Layers()
+        cpy._lst = tuple(obj.copy() for obj in self._lst)
+        cpy._obj = cpy._lst[self._lst.index(self._obj)]
+        return cpy
 
 class Map:
     def __init__(self):
@@ -34,10 +40,26 @@ class ObjMap:
     def __init__(self,obj_map):
         self.obj_map = obj_map
         
-    def set_at(self,x,y,obj):
+    def create_at(self,x,y,obj):
         obj.x = x
         obj.y = y
         self.obj_map[y][x] = obj
+        
+    def remove_obj(self,obj):
+        self.obj_map[obj.y][obj.x]=None
+        obj.x = None
+        
+    def convert_obj(self,old_obj,new_obj):
+        self.obj_map[old_obj.y][old_obj.x] = new_obj
+        new_obj.x, new_obj.y = old_obj.x, old_obj.y
+        old_obj.x = None
+        
+    def move_to(self,x,y,obj):
+        # assert self.obj_map[y][x] == obj
+        self.obj_map[obj.y][obj.x] = None 
+        obj.x, obj.y = x, y
+        self.obj_map[y][x] = obj
+        # TODO: Make list, not just single obj
     
     def get_obj_at(self,x,y):
         return self.obj_map[y][x]
