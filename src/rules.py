@@ -1,7 +1,8 @@
 from helpers import *
 
 class Event:
-    pass
+    def event_text(self):
+        return "verb object on otherobject"
 
 class Rule():
     pass

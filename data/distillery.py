@@ -68,7 +68,7 @@ big_objs = make_objs(
 )
 
 for obj in initial_small_objs.values() + other_small_objs.values():
-    obj.background = False
+    obj.pickable = True
 
 defs = merge(initial_small_objs,other_small_objs,background_objs,big_objs)
 

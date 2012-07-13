@@ -190,8 +190,11 @@ class Frontend:
         
         if self.menu_obj.get_undoable_events():
             undo_event = self.menu_obj.get_undoable_events()[-1]
-            
-        
+            text = txtlib.Text((verb_width, verb_height), 'freesans')
+            text.text = "Undo " + undo_event.event_text()
+            text.update()
+            r_undo = text.area.get_rect().move(x+verb_offset_x-verb_width-5, y+verb_offset_y)
+       
         self.menu_rects = (r1, r_verbs) # r_desc
     
     def draw_transitive_menu(self,x,y):

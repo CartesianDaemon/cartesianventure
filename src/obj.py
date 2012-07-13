@@ -9,7 +9,7 @@ class Obj(Bunch):
         self.update(name=name,description=description,graphic_source=graphic_source)
         self.hoverable = True
         self.can_support = False
-        self.background = True
+        self.pickable = False
         self.created_by_event = []
         self.used_in_events_past = []
         self.used_in_events_future = []
@@ -30,15 +30,15 @@ class Obj(Bunch):
     def copy(self):
         return copy.copy(self)
     
-    def is_background(self):
+    def is_pickable(self):
         # TODO: if we have a link to the data structure we're in, return True if in map, False if in obj_map
-        return self.background
+        return self.pickable
     
     def get_undoable_events(self):
-        if self.is_background():
-            return self.created_by_event
-        else:
+        if self.is_pickable():
             return self.created_by_event + self.used_in_events_past
+        else:
+            return self.created_by_event
         
 def make_objs(**kwargs):
     # return { k:Obj(k,*args) for k,args in kwargs.iteritems()}
