@@ -51,15 +51,31 @@ class Backend:
             if not rule:
                 self.do_default_rule_failure()
             else:
+                self.do_rule(rule,arg_objs)
+                
+    def do_rule(self,rule,arg_objs):
                 new_objs = rule.out_objs
+                event = Event()
+                event.verb = rule.verb
+                event.old_objs = []
+                event.new_objs = []
+                event.other_prereqs = []
                 for i,new_key in enumerate(new_objs):
                     old_obj = arg_objs[i]
                     if new_key == '_pass':
-                        pass
+                        old_obj.used_in_events_past.append(event)
+                        event.other_prereqs.append(old_obj.copy())
                     elif new_key == '_del':
+                        old_obj.used_in_events_past.append(event)
                         self.remove_obj(old_obj)
+                        event.old_objs.append(old_obj.copy())
                     else:
-                        self.convert_obj(old_obj,self.defs[new_key])
+                        new_obj = self.defs[new_key].copy()
+                        new_obj.created_by_event = [event]
+                        old_obj.used_in_events_past.append(event)
+                        event.old_objs.append(old_obj.copy())
+                        event.new_objs.append(new_obj.copy())
+                        self.convert_obj(old_obj,new_obj)
                         # TODO: create extra new objs, eg. shavings
                         # TODO: also work if object is carried
                     #for carried_or_room in self.state.room_list():
@@ -70,7 +86,12 @@ class Backend:
                     #else:
                     #    self.state.free_objs[new_key] = self.defs[new_key]
                 # TODO: create any entirely new objs
+                self.store_new_event(event)
             
+    def store_new_event(self,event):
+        # currently only stored in links from objects, but may want a list of "initial events" which don't depend on any
+        pass
+        
     def do_default_rule_failure(self):
         print "I don't know how to do that"
     

@@ -67,6 +67,9 @@ big_objs = make_objs(
     reagent_c       = Obj("Barrel of gryphon tears", "Large barrel of gryphon tears with a tap on the side"),
 )
 
+for obj in initial_small_objs.values() + other_small_objs.values():
+    obj.background = False
+
 defs = merge(initial_small_objs,other_small_objs,background_objs,big_objs)
 
 init_map_str = """\

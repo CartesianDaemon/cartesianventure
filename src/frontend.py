@@ -162,7 +162,7 @@ class Frontend:
         verb_height = 20
         verb_vpadding = 10
         verb_vstride = verb_height+verb_vpadding
-        verb_offset_x, verb_offset_y = -40,+20
+        verb_offset_x, verb_offset_y = +0,+20
         r_verbs = Rect(x+verb_offset_x,y+verb_offset_y,verb_width,0)
         
         desc_font = pygame.font.Font(None,25)
@@ -177,7 +177,7 @@ class Frontend:
             text = txtlib.Text((verb_width, verb_height), 'freesans')
             text.text = pre+self.menu_obj.name.lower()+suf
             text.update()
-            r_verb = text.area.get_rect().move(x-40, y+20+30*idx)
+            r_verb = text.area.get_rect().move(x+verb_offset_x, y+verb_offset_y+verb_vstride*idx)
             if idx == self.menu_hit_idx:
                 r_verb = r_verb.move(2,1)
             self.screen.blit(text.area, r_verb.topleft)
@@ -187,6 +187,10 @@ class Frontend:
             hit_rect_struct.hit_rect = r_verb
             hit_rect_struct.tr = tr
             self.menu_hit_rects.append(hit_rect_struct)
+        
+        if self.menu_obj.get_undoable_events():
+            undo_event = self.menu_obj.get_undoable_events()[-1]
+            
         
         self.menu_rects = (r1, r_verbs) # r_desc
     

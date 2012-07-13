@@ -9,8 +9,11 @@ class Obj(Bunch):
         self.update(name=name,description=description,graphic_source=graphic_source)
         self.hoverable = True
         self.can_support = False
-        self.created_by_rule = None
-        self.most_recent_used_in_rule = None
+        self.background = True
+        self.created_by_event = []
+        self.used_in_events_past = []
+        self.used_in_events_future = []
+        self.destroyed_by_event = []
         
     def __hash__(self):
         return hash(self.key)
@@ -26,7 +29,17 @@ class Obj(Bunch):
         
     def copy(self):
         return copy.copy(self)
-
+    
+    def is_background(self):
+        # TODO: if we have a link to the data structure we're in, return True if in map, False if in obj_map
+        return self.background
+    
+    def get_undoable_events(self):
+        if self.is_background():
+            return self.created_by_event
+        else:
+            return self.created_by_event + self.used_in_events_past
+        
 def make_objs(**kwargs):
     # return { k:Obj(k,*args) for k,args in kwargs.iteritems()}
     d = {}
