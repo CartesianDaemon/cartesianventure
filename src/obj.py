@@ -39,6 +39,12 @@ class Obj(Bunch):
             return self.created_by_event + self.used_in_events_past
         else:
             return self.created_by_event
+
+    def get_redoable_events(self):
+        if self.is_pickable():
+            return self.destroyed_by_event + self.used_in_events_future
+        else:
+            return self.destroyed_by_event
         
 def make_objs(**kwargs):
     # return { k:Obj(k,*args) for k,args in kwargs.iteritems()}

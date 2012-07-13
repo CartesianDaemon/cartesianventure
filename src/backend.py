@@ -52,7 +52,13 @@ class Backend:
                 self.do_default_rule_failure()
             else:
                 self.do_rule(rule,arg_objs)
-                
+    
+    def do_undo(self,undo_event):
+        pass
+    
+    def do_redo(self,redo_event):
+        pass
+
     def do_rule(self,rule,arg_objs):
                 new_objs = rule.out_objs
                 event = Event()

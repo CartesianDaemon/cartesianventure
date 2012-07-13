@@ -141,11 +141,18 @@ class Frontend:
                 elif self.menu_pos:
                     if self.menu_hit_idx is not None:
                         # Attach verb to mouse cursor
-                        if self.menu_hit_rects[self.menu_hit_idx].tr:
+                        if self.menu_hit_rects[self.menu_hit_idx].verb == '_undo':
+                            self.backend.do_undo(self.menu_hit_rects[self.menu_hit_idx].undo_event)
+                            self.menu_pos = None
+                        elif self.menu_hit_rects[self.menu_hit_idx].verb == '_redo':
+                            self.backend.do_undo(self.menu_hit_rects[self.menu_hit_idx].redo_event)
+                            self.menu_pos = None
+                        elif self.menu_hit_rects[self.menu_hit_idx].tr:
                             self.following_with_transitive_verb = self.menu_hit_rects[self.menu_hit_idx].verb
                             self.transitive_verb_object = tile_obj or tile_base
                         else:
                             self.backend.do(self.following_with_transitive_verb,self.menu_obj)
+                            self.menu_pos = None
                     else:
                         self.menu_pos = None
                         self.last_mouse_pos = None
@@ -163,7 +170,8 @@ class Frontend:
         verb_vpadding = 10
         verb_vstride = verb_height+verb_vpadding
         verb_offset_x, verb_offset_y = +0,+20
-        r_verbs = Rect(x+verb_offset_x,y+verb_offset_y,verb_width,0)
+        # r_verbs = Rect(x+verb_offset_x,y+verb_offset_y,verb_width,0)
+        # r_undos = Rect(x+verb_offset_x,y+verb_offset_y,verb_width,0)
         
         desc_font = pygame.font.Font(None,25)
         desc_text = desc_font.render(self.menu_obj.description,1,(10,10,10),(255,255,255))
@@ -171,9 +179,10 @@ class Frontend:
         r_desc = desc_text.get_rect().move(x-20,y-40)
         self.screen.blit( desc_text, r_desc.topleft )
         self.menu_hit_rects = []
-        for idx,(verb,tr,pre,suf) in enumerate(( ('move',True,"Move "," to ..."),
-                                                 ('use', True,"Use "," with ..." ),
-                                                                                    )):
+        verb_list = ( ('move',True,"Move "," to ..."),
+                      ('use', True,"Use "," with ..." ),
+                    )
+        for idx,(verb,tr,pre,suf) in enumerate(verb_list):
             text = txtlib.Text((verb_width, verb_height), 'freesans')
             text.text = pre+self.menu_obj.name.lower()+suf
             text.update()
@@ -181,7 +190,7 @@ class Frontend:
             if idx == self.menu_hit_idx:
                 r_verb = r_verb.move(2,1)
             self.screen.blit(text.area, r_verb.topleft)
-            r_verbs.h += verb_vstride
+            #r_verbs.h += verb_vstride
             hit_rect_struct = Struct()
             hit_rect_struct.verb = verb
             hit_rect_struct.hit_rect = r_verb
@@ -194,8 +203,33 @@ class Frontend:
             text.text = "Undo " + undo_event.event_text()
             text.update()
             r_undo = text.area.get_rect().move(x+verb_offset_x-verb_width-5, y+verb_offset_y)
-       
-        self.menu_rects = (r1, r_verbs) # r_desc
+            if (self.menu_hit_idx == len(self.menu_hit_rects)):
+                r_undo = r_undo.move(2,1)
+            self.screen.blit(text.area, r_undo.topleft)
+            #r_undos.h += verb_vstride
+            hit_rect_struct = Struct()
+            hit_rect_struct.verb = '_undo'
+            hit_rect_struct.undo_event = undo_event
+            hit_rect_struct.hit_rect = r_undo
+            self.menu_hit_rects.append(hit_rect_struct)
+        
+        if self.menu_obj.get_redoable_events():
+            redo_event = self.menu_obj.get_redoable_events()[-1]
+            text = txtlib.Text((verb_width, verb_height), 'freesans')
+            text.text = "Redo " + redo_event.event_text()
+            text.update()
+            r_redo = text.area.get_rect().move(x+verb_offset_x-verb_width-5, y+verb_offset_y+verb_vstride)
+            if (self.menu_hit_idx == len(self.menu_hit_rects)):
+                r_redo = r_redo.move(2,1)
+            self.screen.blit(text.area, r_redo.topleft)
+            #undos.h += verb_vstride
+            hit_rect_struct = Struct()
+            hit_rect_struct.verb = '_redo'
+            hit_rect_struct.redo_event = redo_event
+            hit_rect_struct.hit_rect = r_redo
+            self.menu_hit_rects.append(hit_rect_struct)
+            
+        self.menu_rects = ( r1, unionall(hit_rect_struct.hit_rect for hit_rect_struct in self.menu_hit_rects) )
     
     def draw_transitive_menu(self,x,y):
         text = txtlib.Text((150,20), 'freesans')

@@ -31,3 +31,10 @@ def NotNone(x):
 
 def reverse_enumerate(lst):
     return reversed(list(enumerate(lst)))
+    
+def unionall(rects):
+    first_rect = next(rects,None)
+    if first_rect is not None:
+        return first_rect.unionall(list(rects))
+    else:
+        return Rect(0,0,0,0)
