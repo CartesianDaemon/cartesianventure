@@ -12,7 +12,7 @@ class Verb:
     def arity(self):
         return len(self.verb_parts)-1
     
-    def get_sentence_normalcase(self,*all_objs):
+    def get_sentence_ncase(self,*all_objs):
         # Typical example:
         #  verb_parts = ( "blow ", " with ",   ",",          " and ", " up" )
         #  all_objs   = ( "enemy", "dynamite", "long cable", "...",   ""    )
@@ -23,11 +23,11 @@ class Verb:
         for idx, (verb_part, obj) in enumerate(izip_longest(self.verb_parts,all_objs)):
             sentence += verb_part
             if idx==0:
-                sentence += obj.get_name_normalcase()
+                sentence += obj.get_name_ncase()
             elif obj is all_objs[0]:
                 sentence += "itself"
             elif obj is not None:
-                sentence += obj.get_name_normalcase()
+                sentence += obj.get_name_ncase()
             elif idx < self.arity():
                 sentence += "..."
         return sentence
@@ -66,7 +66,7 @@ class Obj():
         # TODO: if we have a link to the data structure we're in, return True if in map, False if in obj_map
         return self.pickable
     
-    def get_name_normalcase(self):
+    def get_name_ncase(self):
         return self.name
     
     def get_name_initcap(self):
@@ -90,24 +90,24 @@ class Obj():
         )
         return d[verb]
 
-    def get_verb_sentence_normalcase(self,verb,*other_objs):
+    def get_verb_sentence_ncase(self,verb,*other_objs):
         assert verb in self._enabled_verbs()
         all_objs = (self,) + other_objs
-        return self._get_verb_def(verb,*other_objs).get_sentence_normalcase(*all_objs)
+        return self._get_verb_def(verb,*other_objs).get_sentence_ncase(*all_objs)
 
-    # def get_verb_sentences_normalcase(self,*other_objs):
-    def get_verb_sentences_normalcase(self):
+    # def get_verb_sentences_ncase(self,*other_objs):
+    def get_verb_sentences_ncase(self):
         if 'other_objs' not in locals(): other_objs = ()
         all_objs = (self,) + other_objs
-        return ( (verb,self.get_verb_sentence_normalcase(verb,*other_objs)) for verb in self._enabled_verbs() )
+        return ( (verb,self.get_verb_sentence_ncase(verb,*other_objs)) for verb in self._enabled_verbs() )
 
     # def get_verb_sentences_initcap(self,*other_objs):
     def get_verb_sentences_initcap(self):
         if 'other_objs' not in locals(): other_objs = ()
-        return ( (verb,capitalize_first(sentence)) for verb,sentence in self.get_verb_sentences_normalcase(*other_objs) )
+        return ( (verb,capitalize_first(sentence)) for verb,sentence in self.get_verb_sentences_ncase(*other_objs) )
 
     def get_verb_sentence_initcap(self,verb,*args):
-        return capitalize_first(self.get_verb_sentence_normalcase(verb,*args))
+        return capitalize_first(self.get_verb_sentence_ncase(verb,*args))
 
     def get_verb_arity(self,verb,*other_objs):
         assert verb in self._enabled_verbs()

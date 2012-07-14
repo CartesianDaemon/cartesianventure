@@ -156,15 +156,19 @@ class Frontend:
                     if menu_hit_rect.verb == '_undo':
                         self.backend.do_undo(menu_hit_rect.undo_event)
                         self.menu_pos = None
+                        self.last_mouse_pos = None
                     elif menu_hit_rect.verb == '_redo':
                         self.backend.do_redo(menu_hit_rect.redo_event)
                         self.menu_pos = None
+                        # TODO: Stop menu reappearing automatically by setting last mouse pos to None
+                        self.last_mouse_pos = None
                     else:
                         self.transitive_verb_objects = []
                         self.transitive_verb_putative_objects = []
                         if self.menu_obj.get_remaining_verb_arity(menu_hit_rect.verb,*self.transitive_verb_objects)==0:
                             self.backend.do(menu_hit_rect.verb,self.menu_obj,*self.transitive_verb_objects)
                             self.menu_pos = None
+                            self.last_mouse_pos = None
                         else:
                             self.following_with_transitive_verb = menu_hit_rect.verb
                 else:
@@ -179,8 +183,8 @@ class Frontend:
     
     def draw_menu(self,x,y):
         r1 = Rect(x-20,y-20,40,40)
-        verb_width = 150
-        verb_height = 20
+        verb_width , verb_height = 120 , 20
+        undo_width, undo_height = 180, verb_height
         verb_vpadding = 10
         verb_vstride = verb_height+verb_vpadding
         verb_offset_x, verb_offset_y = +0,+20
@@ -212,10 +216,10 @@ class Frontend:
         
         if self.menu_obj.get_undoable_events():
             undo_event = self.menu_obj.get_undoable_events()[-1]
-            text = txtlib.Text((verb_width, verb_height), 'freesans')
-            text.text = "Undo " + undo_event.event_text()
+            text = txtlib.Text((undo_width, undo_height), 'freesans')
+            text.text = "Undo " + undo_event.event_text_ncase()
             text.update()
-            r_undo = text.area.get_rect().move(x+verb_offset_x-verb_width-5, y+verb_offset_y)
+            r_undo = text.area.get_rect().move(x+verb_offset_x-undo_width-5, y+verb_offset_y)
             if (self.menu_hit_idx == len(self.menu_hit_rects)):
                 r_undo = r_undo.move(2,1)
             self.screen.blit(text.area, r_undo.topleft)
@@ -228,10 +232,10 @@ class Frontend:
         
         if self.menu_obj.get_redoable_events():
             redo_event = self.menu_obj.get_redoable_events()[-1]
-            text = txtlib.Text((verb_width, verb_height), 'freesans')
+            text = txtlib.Text((undo_width, undo_height), 'freesans')
             text.text = "Redo " + redo_event.event_text()
             text.update()
-            r_redo = text.area.get_rect().move(x+verb_offset_x-verb_width-5, y+verb_offset_y+verb_vstride)
+            r_redo = text.area.get_rect().move(x+verb_offset_x-undo_width-5, y+verb_offset_y+verb_vstride)
             if (self.menu_hit_idx == len(self.menu_hit_rects)):
                 r_redo = r_redo.move(2,1)
             self.screen.blit(text.area, r_redo.topleft)

@@ -60,6 +60,7 @@ class Backend:
         event.old_objs = []
         event.new_objs = []
         event.other_prereqs = []
+        event.sentence = arg_objs[0].get_verb_sentence_ncase(rule.verb,*arg_objs[1:])
         for i,new_key in enumerate(new_objs):
             assert i < len(arg_objs) # TODO: Create completely new objects, eg. wood shavings
             old_obj = arg_objs[i]

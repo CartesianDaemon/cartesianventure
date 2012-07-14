@@ -91,13 +91,13 @@ class TestBackend(unittest.TestCase):
         crucible = self.backend_distillery.defs.crucible
         crucible_w = self.backend_distillery.defs.crucible_w
         well = self.backend_distillery.defs.well
-        self.assertEqual(crucible.get_verb_sentence_normalcase('use'),"use crucible with ...")
+        self.assertEqual(crucible.get_verb_sentence_ncase('use'),"use crucible with ...")
         self.assertEqual(crucible.get_verb_sentence_initcap('use'),"Use crucible with ...")
         self.assertEqual(crucible.get_verb_sentence_initcap('use',crucible_w),"Use crucible with crucible")
         self.assertEqual(crucible.get_verb_sentence_initcap('use',crucible),"Use crucible with itself")
-        self.assertEqual(len(tuple(self.obj_at(6,4).get_verb_sentences_normalcase())),3)
-        # self.assertEqual(len(tuple(self.obj_at(6,4).get_verb_sentences_normalcase(self.obj_at(8,3)))),3)
-        self.assertEqual(len(tuple(self.obj_at(8,3).get_verb_sentences_normalcase())),2)
+        self.assertEqual(len(tuple(self.obj_at(6,4).get_verb_sentences_ncase())),3)
+        # self.assertEqual(len(tuple(self.obj_at(6,4).get_verb_sentences_ncase(self.obj_at(8,3)))),3)
+        self.assertEqual(len(tuple(self.obj_at(8,3).get_verb_sentences_ncase())),2)
         self.assertEqual(len(tuple(self.obj_at(6,4).get_verb_sentences_initcap())),3)
         # self.assertEqual(len(tuple(self.obj_at(6,4).get_verb_sentences_initcap(self.obj_at(8,3)))),3)
         self.assertEqual(len(tuple(self.obj_at(8,3).get_verb_sentences_initcap())),2)

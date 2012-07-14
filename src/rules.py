@@ -1,8 +1,8 @@
 from helpers import *
 
 class Event:
-    def event_text(self):
-        return "verb object on otherobject"
+    def event_text_ncase(self):
+        return self.sentence
 
 class Rule:
     def __init__(self,verb,*arg_pairs,**kwargs):
