@@ -1,3 +1,5 @@
+from itertools import chain
+
 class Bunch(dict):
     def __getattr__(self, attr):
         return self[attr]
@@ -8,9 +10,10 @@ class Struct:
     pass
 
 def merge(*args):
-    #return set().union(*args)
     ret = Bunch()
-    for x in args: ret.update(x)
+    for k,v in chain.from_iterable(d.iteritems() for d in args):
+        assert k not in ret
+        ret[k] = v
     return ret
 
 # class Maybe:
