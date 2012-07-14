@@ -20,6 +20,10 @@
 # 11 July 2012
 # 
 # Hover menu
+# 
+# 14 July 2012
+#
+# Verb menu, undo menu (nonfunctional), refactored mapsquare
 
 # TODO tidies of hover menus:
 #  - use consistent text rendering based on font.render
@@ -67,15 +71,30 @@ class TestBackend(unittest.TestCase):
         pass
     
     def test_contexts(self):
-        self.assertEqual(self.backend_distillery.get_mapsquare_at(0,2).get_combined_mainobj().context,'br' )
+        self.assertEqual(self.backend_distillery.get_obj_at(0,2).context,'br' )
+    
+    def do_verb(self,verb,x1,y1,x2,y2):
+        self.backend_distillery.do(verb,self.backend_distillery.get_obj_at(x1,y1),self.backend_distillery.get_obj_at(x2,y2))
+    
+    def obj_at(self,x,y):
+        return self.backend_distillery.get_obj_at(x,y)
     
     def test_verbs(self):
-        # self.backend_distillery.do('move',backend.get_obj_map()[4][6].get_obj())
-        pass
+        self.assertEquals(self.obj_at(6,4).key,'crucible')
+        self.do_verb('move', 6,4 , 7,4)
+        self.assertEquals(self.obj_at(6,4).name,'floor')
+        self.assertEquals(self.obj_at(7,4).key,'crucible')
+        self.do_verb('move', 7,4 , 8,3)
+        self.assertEquals(self.obj_at(7,4).key,'crucible')
+        self.assertEquals(len(self.obj_at(7,4).get_undoable_events()),0)
+        self.assertEquals(len(self.obj_at(7,4).get_redoable_events()),0)
+        self.do_verb('use', 7,4 , 8,3)
+        self.assertEquals(self.obj_at(7,4).key,'crucible_w')
+        self.assertEquals(len(self.obj_at(7,4).get_undoable_events()),1)
     
     def test_map_load(self):
-        self.assertEquals(self.backend_distillery.get_mapsquare_at(1,4).get_base_mainobj().key,'floorboards')
-        self.assertEquals(self.backend_distillery.get_mapsquare_at(0,4).get_base_mainobj().key,'wall')
+        self.assertEquals(self.obj_at(1,4).key,'floorboards')
+        self.assertEquals(self.obj_at(0,4).key,'wall')
 
 class TestFrontend(unittest.TestCase):
     def setUp(self):

@@ -112,11 +112,14 @@ class Backend:
         # TODO: work with large obj in map, not obj_map
         self.obj_map.convert_obj(old_obj,new_obj)
     
-    def get_mapsquare_at(self,x,y):
+    def _get_mapsquare_at(self,x,y):
         return MapSquare(self.map.get_layers_at(x,y), self.obj_map.get_layers_at(x,y), self.map.get_context_at(x,y))
+        
+    def get_obj_at(self,x,y):
+        return self._get_mapsquare_at(x,y).get_combined_mainobj()
     
     def get_mapsquares_by_rows(self):
-        return ( (x,y,self.get_mapsquare_at(x,y)) for x,y in self.map.get_coords_by_rows() )
+        return ( (x,y,self._get_mapsquare_at(x,y)) for x,y in self.map.get_coords_by_rows() )
         
     def get_map_size(self):
         return self.map.map_size()

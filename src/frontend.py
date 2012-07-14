@@ -107,7 +107,7 @@ class Frontend:
                 tile_x, tile_y = (xy / tile_wh for xy, tile_wh in zip(event.pos,self.get_default_tile_size()))
                 # tile_base = self.backend.get_map()[tile_y][tile_x].get_obj()
                 # tile_obj = self.backend.get_obj_map().get_obj_at(tile_x,tile_y)
-                curr_obj = self.backend.get_mapsquare_at(tile_x,tile_y).get_combined_mainobj()
+                curr_obj = self.backend.get_obj_at(tile_x,tile_y)
             if (event.type == QUIT) or (event.type == KEYDOWN and event.key == K_ESCAPE) :
                 return 'quit'
             elif event.type == MOUSEMOTION:
