@@ -29,6 +29,9 @@
 # Examine verb. Intransitive verbs for fixed objects.
 
 import unittest
+import os
+import fnmatch
+import pickle
 
 from src.backend import *
 from src.frontend import *
@@ -37,6 +40,15 @@ from src.helpers import *
 class TestSyntax(unittest.TestCase):
     def test_double_comprehension(self):
         self.assertEquals( tuple( b for a in ("abc","ABC") for b in a) , ("a","b","c","A","B","C") )
+        
+    def test_pickle(self):
+        fh = open("foo","wb")
+        pickle.dump( [1,2,3], fh)
+        fh.close()
+        fh = open("foo","rb")
+        self.assertEquals(pickle.load(fh),[1,2,3])
+        with self.assertRaises(EOFError):
+            pickle.load(fh)
 
 class TestBunch(unittest.TestCase):
     def test_set(self):
@@ -125,6 +137,21 @@ class TestFrontend(unittest.TestCase):
     
     def test_step(self):
         self.frontend.loop_step()
+        
+    def test_playback(self):
+        filenames = fnmatch.filter(os.listdir("."),"test*.eventlog.bin")
+        self.assertTrue(filenames)
+        for filename in filenames:
+            print "\nPlaying back: " + filename + ": "
+            my_frontend = Frontend(default_room='distillery')
+            fh = open(filename,"rb")
+            try:
+                while True:
+                    event = pickle.load(fh)
+                    my_frontend.handle_event(event)
+            except EOFError:
+                fh.close()
+            print ""
         
 if __name__ == '__main__':
     unittest.main(verbosity=2)

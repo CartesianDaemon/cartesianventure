@@ -4,6 +4,7 @@ import pygame
 from pygame.locals import *
 from pygame.compat import geterror
 from itertools import chain
+import pickle
 
 # Other modules
 import txtlib.txtlib as txtlib
@@ -14,7 +15,7 @@ from src.backend import Backend
 from src.graphic_source import GraphicSource # For testing
 
 enable_splash = 'nosplash' not in sys.argv
-log_events = 'logevents' in sys.argv
+log_file = open('eventlog.bin', 'wb') if 'logevents' in sys.argv else None
 
 class Frontend:
     def __init__(self,default_room):
@@ -64,6 +65,7 @@ class Frontend:
                 events = pygame.event.get() or (pygame.event.wait(),)
             ret = self.loop_step(events)
             if ret == 'quit': break
+        if log_file: log_file.close()
         pygame.quit()
 
     def loop_step(self,events=()):
@@ -107,8 +109,13 @@ class Frontend:
             self.draw_menu(*self.menu_pos)
         
     def handle_event(self, event):
-        if log_events:
-            print str(event)+", #logged event"
+        if log_file: # and event.type in (MOUSEBUTTONDOWN,MOUSEBUTTONUP,MOUSEMOTION,QUIT,KEYDOWN):
+            my_event = Struct()
+            my_event.type = event.type
+            if event.type in (MOUSEBUTTONDOWN,MOUSEBUTTONUP,MOUSEMOTION): my_event.pos = event.pos
+            if event.type in (KEYDOWN,): my_event.key, my_event.mod = event.key, event.mod
+            pickle.dump(my_event,log_file)
+            event = my_event # test it works before we try loading from file
         if event.type in (MOUSEBUTTONDOWN,MOUSEBUTTONUP,MOUSEMOTION):
             tile_x, tile_y = (xy / tile_wh for xy, tile_wh in zip(event.pos,self.get_default_tile_size()))
             # tile_base = self.backend.get_map()[tile_y][tile_x].get_obj()
@@ -181,10 +188,12 @@ class Frontend:
         # r_undos = Rect(x+verb_offset_x,y+verb_offset_y,verb_width,0)
         
         desc_font = pygame.font.Font(None,25)
-        desc_text = desc_font.render(self.menu_obj.get_short_desc(),1,(10,10,10),(255,255,255))
-        desc_text.set_alpha(128, RLEACCEL)
-        r_desc = desc_text.get_rect().move(x-20,y-40)
-        self.screen.blit( desc_text, r_desc.topleft )
+        short_desc = self.menu_obj.get_short_desc()
+        if short_desc:
+            desc_text = desc_font.render(short_desc,1,(10,10,10),(255,255,255))
+            desc_text.set_alpha(128, RLEACCEL)
+            r_desc = desc_text.get_rect().move(x-20,y-40)
+            self.screen.blit( desc_text, r_desc.topleft )
         self.menu_hit_rects = []
         verb_list = self.menu_obj.get_verb_sentences_initcap()
         for idx,(verb,sentence) in enumerate(verb_list):
