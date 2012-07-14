@@ -149,6 +149,7 @@ class Frontend:
                     self.backend.do(self.following_with_transitive_verb,self.menu_obj,*self.transitive_verb_objects)
                     self.following_with_transitive_verb = None
                     self.menu_pos = None
+                    self.last_mouse_pos = None
             elif self.menu_pos:
                 if self.menu_hit_idx is not None:
                     menu_hit_rect = self.menu_hit_rects[self.menu_hit_idx]
@@ -160,7 +161,6 @@ class Frontend:
                     elif menu_hit_rect.verb == '_redo':
                         self.backend.do_redo(menu_hit_rect.redo_event)
                         self.menu_pos = None
-                        # TODO: Stop menu reappearing automatically by setting last mouse pos to None
                         self.last_mouse_pos = None
                     else:
                         self.transitive_verb_objects = []
