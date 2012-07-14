@@ -42,30 +42,38 @@ class Frontend:
         self.background.fill((0, 0, 0))
 
         self.clock = pygame.time.Clock()
+        
+        self.FRAME_TIMER = pygame.USEREVENT+1
 
     def get_screen_padding(self):
         return 0,0,0,0
 
     def main(self):
         if enable_splash:
-            if self.splash() == 'quit':
-                return 'quit'
-
+            ret = self.splash()
+            if ret == 'quit': return 'quit'
+        max_fps = 60
+        fixed_fps = False
+        if not fixed_fps:
+            pygame.time.set_timer(self.FRAME_TIMER,1000//max_fps)
         while True:
-            if self.loop_step() == 'quit': break
-        
+            if fixed_fps:
+                self.clock.tick(max_fps)
+                events = pygame.event.get()
+            else:
+                events = pygame.event.get() or (pygame.event.wait(),)
+            ret = self.loop_step(events)
+            if ret == 'quit': break
         pygame.quit()
 
-    def loop_step(self):
-        self.clock.tick(60)
-        if self.handle_events() == 'quit':
-            return 'quit'
-        self.update()
+    def loop_step(self,events=()):
+        for event in events:
+            ret = self.handle_event(event)
+            if ret == 'quit': return 'quit'
         self.draw_all()
         self.handle_and_draw_menu()
         pygame.display.flip()
         sys.stdout.flush()
-
 
     def get_default_tile_size(self):
         return 64,64
@@ -81,10 +89,6 @@ class Frontend:
                 self.screen.blit( tile_surface, (off_x + tile_width*x,
                                                  off_y + tile_height*y + (tile_height-tile_surface.get_height()) ) )
             
-    def update(self):
-        # Update state of backend other than due to events
-        pass
-
     def handle_and_draw_menu(self):
         if self.following_with_transitive_verb:
             if pygame.mouse.get_focused():
@@ -102,70 +106,69 @@ class Frontend:
         if self.menu_pos:
             self.draw_menu(*self.menu_pos)
         
-    def handle_events(self):
-        for event in pygame.event.get():
-            if log_events:
-                print str(event)+", #logged event"
-            if event.type in (MOUSEBUTTONDOWN,MOUSEBUTTONUP,MOUSEMOTION):
-                tile_x, tile_y = (xy / tile_wh for xy, tile_wh in zip(event.pos,self.get_default_tile_size()))
-                # tile_base = self.backend.get_map()[tile_y][tile_x].get_obj()
-                # tile_obj = self.backend.get_obj_map().get_obj_at(tile_x,tile_y)
-                curr_obj = self.backend.get_obj_at(tile_x,tile_y)
-            if (event.type == QUIT) or (event.type == KEYDOWN and event.key == K_F4 and event.mod&KMOD_ALT ):
-                return 'quit'
-            elif event.type == MOUSEMOTION:
-                if self.following_with_transitive_verb:
-                    self.transitive_verb_putative_objects = self.transitive_verb_objects + [curr_obj]
+    def handle_event(self, event):
+        if log_events:
+            print str(event)+", #logged event"
+        if event.type in (MOUSEBUTTONDOWN,MOUSEBUTTONUP,MOUSEMOTION):
+            tile_x, tile_y = (xy / tile_wh for xy, tile_wh in zip(event.pos,self.get_default_tile_size()))
+            # tile_base = self.backend.get_map()[tile_y][tile_x].get_obj()
+            # tile_obj = self.backend.get_obj_map().get_obj_at(tile_x,tile_y)
+            curr_obj = self.backend.get_obj_at(tile_x,tile_y)
+        if (event.type == QUIT) or (event.type == KEYDOWN and event.key == K_F4 and event.mod&KMOD_ALT ):
+            return 'quit'
+        elif event.type == MOUSEMOTION:
+            if self.following_with_transitive_verb:
+                self.transitive_verb_putative_objects = self.transitive_verb_objects + [curr_obj]
+            else:
+                if curr_obj.is_hoverable():
+                    self.last_mouse_pos = event.pos
+                    self.last_mouse_time = pygame.time.get_ticks()
+                    self.last_mouse_obj = curr_obj
                 else:
-                    if curr_obj.is_hoverable():
-                        self.last_mouse_pos = event.pos
-                        self.last_mouse_time = pygame.time.get_ticks()
-                        self.last_mouse_obj = curr_obj
-                    else:
-                        self.last_mouse_pos = None
-                        self.last_mouse_tile_pos = None
-                    self.menu_hit_idx = None
-                    if self.menu_pos and self.is_in_menu(event.pos):
-                        self.last_mouse_in_menu_time = pygame.time.get_ticks()
-                        for idx,hit_rect_struct in enumerate(self.menu_hit_rects):
-                            if hit_rect_struct.hit_rect.collidepoint(event.pos):
-                                self.menu_hit_idx = idx
-                                break
-            elif event.type == MOUSEBUTTONDOWN:
-                if self.following_with_transitive_verb:
+                    self.last_mouse_pos = None
+                    self.last_mouse_tile_pos = None
+                self.menu_hit_idx = None
+                if self.menu_pos and self.is_in_menu(event.pos):
+                    self.last_mouse_in_menu_time = pygame.time.get_ticks()
+                    for idx,hit_rect_struct in enumerate(self.menu_hit_rects):
+                        if hit_rect_struct.hit_rect.collidepoint(event.pos):
+                            self.menu_hit_idx = idx
+                            break
+        elif event.type == MOUSEBUTTONDOWN:
+            if self.following_with_transitive_verb:
+                menu_hit_rect = self.menu_hit_rects[self.menu_hit_idx]
+                self.transitive_verb_objects.append(curr_obj)
+                if self.menu_obj.get_remaining_verb_arity(menu_hit_rect.verb,*self.transitive_verb_objects)==0:
+                    self.backend.do(self.following_with_transitive_verb,self.menu_obj,*self.transitive_verb_objects)
+                    self.following_with_transitive_verb = None
+                    self.menu_pos = None
+            elif self.menu_pos:
+                if self.menu_hit_idx is not None:
                     menu_hit_rect = self.menu_hit_rects[self.menu_hit_idx]
-                    self.transitive_verb_objects.append(curr_obj)
-                    if self.menu_obj.get_remaining_verb_arity(menu_hit_rect.verb,*self.transitive_verb_objects)==0:
-                        self.backend.do(self.following_with_transitive_verb,self.menu_obj,*self.transitive_verb_objects)
-                        self.following_with_transitive_verb = None
+                    # Do transitive verb or attach intr verb to mouse cursor
+                    if menu_hit_rect.verb == '_undo':
+                        self.backend.do_undo(menu_hit_rect.undo_event)
                         self.menu_pos = None
-                elif self.menu_pos:
-                    if self.menu_hit_idx is not None:
-                        menu_hit_rect = self.menu_hit_rects[self.menu_hit_idx]
-                        # Do transitive verb or attach intr verb to mouse cursor
-                        if menu_hit_rect.verb == '_undo':
-                            self.backend.do_undo(menu_hit_rect.undo_event)
-                            self.menu_pos = None
-                        elif menu_hit_rect.verb == '_redo':
-                            self.backend.do_redo(menu_hit_rect.redo_event)
+                    elif menu_hit_rect.verb == '_redo':
+                        self.backend.do_redo(menu_hit_rect.redo_event)
+                        self.menu_pos = None
+                    else:
+                        self.transitive_verb_objects = []
+                        self.transitive_verb_putative_objects = []
+                        if self.menu_obj.get_remaining_verb_arity(menu_hit_rect.verb,*self.transitive_verb_objects)==0:
+                            self.backend.do(menu_hit_rect.verb,self.menu_obj,*self.transitive_verb_objects)
                             self.menu_pos = None
                         else:
-                            self.transitive_verb_objects = []
-                            self.transitive_verb_putative_objects = []
-                            if self.menu_obj.get_remaining_verb_arity(menu_hit_rect.verb,*self.transitive_verb_objects)==0:
-                                self.backend.do(menu_hit_rect.verb,self.menu_obj,*self.transitive_verb_objects)
-                                self.menu_pos = None
-                            else:
-                                self.following_with_transitive_verb = menu_hit_rect.verb
-                    else:
-                        self.menu_pos = None
-                        self.last_mouse_pos = None
+                            self.following_with_transitive_verb = menu_hit_rect.verb
                 else:
-                    pass
-                    # # Enable to enable menu for floor, but nothing in it atm
-                    # self.last_mouse_pos = event.pos
-                    # self.last_mouse_time = 0
-                    # self.last_mouse_obj = tile_obj or tile_base
+                    self.menu_pos = None
+                    self.last_mouse_pos = None
+            else:
+                pass
+                # # Enable to enable menu for floor, but nothing in it atm
+                # self.last_mouse_pos = event.pos
+                # self.last_mouse_time = 0
+                # self.last_mouse_obj = tile_obj or tile_base
     
     def draw_menu(self,x,y):
         r1 = Rect(x-20,y-20,40,40)
