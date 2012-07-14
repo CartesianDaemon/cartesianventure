@@ -149,11 +149,11 @@ class Frontend:
                         else:
                             self.transitive_verb_objects = []
                             self.transitive_verb_putative_objects = []
-                            if self.menu_obj.get_remaining_verb_arity(menu_hit_rect.verb,*self.transitive_verb_objects)>0:
-                                self.following_with_transitive_verb = menu_hit_rect.verb
-                            else:
-                                self.backend.do(self.following_with_transitive_verb,*self.transitive_verb_objects)
+                            if self.menu_obj.get_remaining_verb_arity(menu_hit_rect.verb,*self.transitive_verb_objects)==0:
+                                self.backend.do(menu_hit_rect.verb,self.menu_obj,*self.transitive_verb_objects)
                                 self.menu_pos = None
+                            else:
+                                self.following_with_transitive_verb = menu_hit_rect.verb
                     else:
                         self.menu_pos = None
                         self.last_mouse_pos = None
@@ -175,7 +175,7 @@ class Frontend:
         # r_undos = Rect(x+verb_offset_x,y+verb_offset_y,verb_width,0)
         
         desc_font = pygame.font.Font(None,25)
-        desc_text = desc_font.render(self.menu_obj.description,1,(10,10,10),(255,255,255))
+        desc_text = desc_font.render(self.menu_obj.get_short_desc(),1,(10,10,10),(255,255,255))
         desc_text.set_alpha(128, RLEACCEL)
         r_desc = desc_text.get_rect().move(x-20,y-40)
         self.screen.blit( desc_text, r_desc.topleft )

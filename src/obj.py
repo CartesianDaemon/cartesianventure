@@ -33,9 +33,10 @@ class Verb:
         return sentence
             
 class Obj():
-    def __init__(self,name,description="",graphic_source=None):
+    def __init__(self,name,short_desc="",examine_text="",graphic_source=None):
         self.name=name
-        self.description=description
+        self.short_desc=short_desc
+        self.examine_text=examine_text
         self.graphic_source=graphic_source
         self.hoverable = True
         self.can_support = False
@@ -70,7 +71,13 @@ class Obj():
     
     def get_name_initcap(self):
         return capitalize_first(self.name)
-        
+    
+    def get_short_desc(self):
+        return self.short_desc
+    
+    def get_examine_text(self):
+        return self.examine_text
+    
     def _enabled_verbs(self):
         return ['move','use','examine'] if self.pickable else ['use','examine']
             
