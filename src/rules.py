@@ -5,7 +5,14 @@ class Event:
         return "verb object on otherobject"
 
 class Rule:
-    pass
+    def __init__(self,verb,*arg_pairs,**kwargs):
+        self.verb = verb
+        self.in_objs = tuple(pair[0] for pair in arg_pairs)
+        self.out_objs = tuple( (pair[-1] if len(pair)>=1 else '_pass') for pair in arg_pairs)
+        self.msg = kwargs.get('msg') or ""
+
+    def get_msg(self):
+        return self.msg
     
 class Rules(Bunch):
     def get_rule(self,verb,*arg_objs):
@@ -15,10 +22,7 @@ class Rules(Bunch):
         self.add_rule(verb,arg_pair1,arg_pair2)
         self.add_rule(verb,arg_pair2,arg_pair1)
     
-    def add_rule(self,verb,*arg_pairs):
+    def add_rule(self,verb,*args,**kwargs):
+        rule = Rule(verb,*args,**kwargs)
         if not self.get(verb): self[verb] = {}
-        rule = Rule()
-        rule.verb = verb
-        rule.in_objs = tuple(pair[0] for pair in arg_pairs)
-        rule.out_objs = tuple( (pair[-1] if len(pair)>=1 else '_pass') for pair in arg_pairs)
         self[verb][rule.in_objs] = rule

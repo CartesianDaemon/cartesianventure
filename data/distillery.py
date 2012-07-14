@@ -72,7 +72,7 @@ def base_layers_from_char(char,char_map,x,y):
 # Pick-up-able objects
 #
 ##############################################################
-        
+
 pickable_objs = make_objs(
     crucible  = Obj("crucible","An encrusted clay crucible",
                     graphic_source=GraphicSource("data/img_circ/Bench.bmp",510,31,40,40,colorkey='topleft')),

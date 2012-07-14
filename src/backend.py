@@ -54,6 +54,7 @@ class Backend:
         event.new_objs = []
         event.other_prereqs = []
         for i,new_key in enumerate(new_objs):
+            assert i < len(arg_objs) # TODO: Create completely new objects, eg. wood shavings
             old_obj = arg_objs[i]
             if new_key == '_pass':
                 old_obj.used_in_events_past.append(event)
@@ -73,6 +74,7 @@ class Backend:
                 # TODO: also work if object is carried
         # TODO: create any entirely new objs
         self.store_new_event(event)
+        if rule.get_msg(): print rule.get_msg()
             
     def store_new_event(self,event):
         # currently only stored in links from objects, but may want a list of "initial events" which don't depend on any
