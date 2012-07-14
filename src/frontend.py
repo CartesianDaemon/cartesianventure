@@ -11,11 +11,12 @@ import txtlib.txtlib as txtlib
 # Internal modules
 from src.helpers import *
 from src.backend import Backend
+from src.graphic_source import GraphicSource # For testing
 
 enable_splash = 'nosplash' not in sys.argv
 
 class Frontend:
-    def main(self,default_room):
+    def __init__(self,default_room):
         pygame.init()
 
         self.menu_pos = None
@@ -28,12 +29,11 @@ class Frontend:
         self.backend = Backend()
         self.backend.load(default_room)
 
-        tile_width, tile_height = self.get_default_tile_size()
-        map = self.backend.get_map()
-        map_height = len(map)
-        map_width = len(map[0])
-        self.top_padding = 0 # tile_height*2
-        self.screen = pygame.display.set_mode((map_width*tile_width,self.top_padding+map_height*tile_height))
+        self.screen = pygame.display.set_mode( tuple(a*b+pad1+pad2 for a,b,pad1,pad2 in zip( self.backend.get_map_size(),
+                                                                                            self.get_default_tile_size(),
+                                                                                            self.get_screen_padding()[0:2],
+                                                                                            self.get_screen_padding()[2:4],
+                                                                                            ) ) )
         pygame.display.set_caption('Cartesianventure sample: Alchemical Distillery')
 
         self.background = pygame.Surface(self.screen.get_size())
@@ -42,6 +42,10 @@ class Frontend:
 
         self.clock = pygame.time.Clock()
 
+    def get_screen_padding(self):
+        return 0,0,0,0
+
+    def main(self):
         if enable_splash:
             if self.splash() == 'quit':
                 return 'quit'
@@ -67,21 +71,14 @@ class Frontend:
 
     def draw_all(self):
         self.screen.blit(self.background, (0, 0))
-        map = self.backend.get_map()
-        obj_map = self.backend.get_obj_map()
-        contexts = self.backend.get_contexts()
         tile_width, tile_height = self.get_default_tile_size()
-        for y, line in enumerate(map):
-            for x,layers in enumerate(line):
-                for obj in layers.lst() + obj_map.get_lst_at(x,y):
-                    if obj is not None:
-                        tile_surface = obj.get_surface(x,y,tile_width,tile_height,contexts[y][x])
-                        self.screen.blit( tile_surface, (tile_width*x,self.top_padding
-                                                        +tile_height*(y+1)-tile_surface.get_height()) )
-                
-        objs = self.backend.get_visible_objs()
-        
-        # TODO: draw non-fixed objs
+        off_x, off_y = self.get_screen_padding()[0:2]
+        for x,y,map_square in self.backend.get_mapsquares_by_rows():
+            for obj in map_square.get_combined_lst():
+                assert obj is not None
+                tile_surface = obj.get_surface(x,y,tile_width,tile_height,obj.context)
+                self.screen.blit( tile_surface, (off_x + tile_width*x,
+                                                 off_y + tile_height*y + (tile_height-tile_surface.get_height()) ) )
             
     def update(self):
         # Update state of backend other than due to events
@@ -107,22 +104,20 @@ class Frontend:
     def handle_events(self):
         for event in pygame.event.get():
             if event.type in (MOUSEBUTTONDOWN,MOUSEBUTTONUP,MOUSEMOTION):
-                tile_x, tile_y = tile_pos = (xy / tile_wh for xy, tile_wh in zip(event.pos,self.get_default_tile_size()))
-                tile_base = self.backend.get_map()[tile_y][tile_x].obj()
-                tile_obj = self.backend.get_obj_map().get_obj_at(tile_x,tile_y)
+                tile_x, tile_y = (xy / tile_wh for xy, tile_wh in zip(event.pos,self.get_default_tile_size()))
+                # tile_base = self.backend.get_map()[tile_y][tile_x].get_obj()
+                # tile_obj = self.backend.get_obj_map().get_obj_at(tile_x,tile_y)
+                curr_obj = self.backend.get_mapsquare_at(tile_x,tile_y).get_combined_mainobj()
             if (event.type == QUIT) or (event.type == KEYDOWN and event.key == K_ESCAPE) :
                 return 'quit'
             elif event.type == MOUSEMOTION:
                 if self.following_with_transitive_verb:
-                    self.transitive_verb_object = tile_obj or tile_base
+                    self.transitive_verb_object = curr_obj
                 else:
-                    if tile_base.is_hoverable() or tile_obj:
-                        # if self.last_mouse_tile_pos != tile_pos:
-                        #     self.last_mouse_tile_pos = tile_pos
-                        #     self.last_mouse_pos = event.pos
+                    if curr_obj.is_hoverable():
                         self.last_mouse_pos = event.pos
                         self.last_mouse_time = pygame.time.get_ticks()
-                        self.last_mouse_obj = tile_obj or tile_base
+                        self.last_mouse_obj = curr_obj
                     else:
                         self.last_mouse_pos = None
                         self.last_mouse_tile_pos = None
@@ -135,7 +130,7 @@ class Frontend:
                                 break
             elif event.type == MOUSEBUTTONDOWN:
                 if self.following_with_transitive_verb:
-                    self.backend.do(self.following_with_transitive_verb,self.menu_obj,tile_obj or tile_base)
+                    self.backend.do(self.following_with_transitive_verb,self.menu_obj,curr_obj)
                     self.following_with_transitive_verb = None
                     self.menu_pos = None
                 elif self.menu_pos:
@@ -150,7 +145,7 @@ class Frontend:
                         elif self.menu_hit_rects[self.menu_hit_idx].tr:
                             # TODO: For verb with more than one target object, add object to list and leave transitive menu open using get_verb_remaining_arities to test if nec
                             self.following_with_transitive_verb = self.menu_hit_rects[self.menu_hit_idx].verb
-                            self.transitive_verb_object = tile_obj or tile_base
+                            self.transitive_verb_object = curr_obj
                         else:
                             self.backend.do(self.following_with_transitive_verb,self.menu_obj)
                             self.menu_pos = None
@@ -241,7 +236,7 @@ class Frontend:
     def is_in_menu(self,pt):
         return any( ( rect.collidepoint(pt) for rect in self.menu_rects ) )
     
-    def splash(self):
+    def splash(self,timeout_ms = None):
         welcome_msg="""\
 Cartesianventure sample: Hijinks in the alchemical distillery department
 
@@ -253,7 +248,8 @@ Click to continue...
 """
         #self.screen.blit(self.background, (0, 0))
         self.blit_message(welcome_msg)
-        while True:
+        end_time = pygame.time.get_ticks() + timeout_ms if timeout_ms else None
+        while timeout_ms is None or pygame.time.get_ticks()<end_time:
             self.clock.tick(60)
             pygame.display.flip()
             for event in pygame.event.get():
@@ -275,7 +271,7 @@ Click to continue...
         self.screen.blit(text.area, (x, y))
 
 def main():
-    Frontend().main(default_room='distillery')        
+    Frontend(default_room='distillery').main()        
 
 #this calls the 'main' function when this script is executed
 if __name__ == '__main__':

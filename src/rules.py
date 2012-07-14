@@ -4,7 +4,7 @@ class Event:
     def event_text(self):
         return "verb object on otherobject"
 
-class Rule():
+class Rule:
     pass
     
 class Rules(Bunch):

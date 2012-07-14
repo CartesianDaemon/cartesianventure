@@ -51,10 +51,8 @@ class GraphicSource:
             self.load(w,h)
         is_transparent = (self.transparent==True) or (self.transparent=='atbottomofscreen' and yidx==7)
         surfaces = self.surfaces if not is_transparent else self.transparent_surfaces
-        if self.reps>1:
-            return self.get_random_surface(surfaces,xidx,yidx)
-        else:
-            return surfaces[0]
+        ret = self.get_random_surface(surfaces,xidx,yidx) if self.reps>1 else surfaces[0]
+        return ret
             
     def get_random_surface(self,surfaces,xidx,yidx):
         random.seed(xidx+yidx)
@@ -69,8 +67,5 @@ class ContextualGraphicSource:
         for gs in self.tiles: gs.load(*args)
         
     def get_surface(self,xidx,yidx,w,h,context):
-        if context in self.tiles:
-            return self.tiles[context].get_surface(xidx,yidx,w,h)
-        else:
-            return self.tiles['x']
-
+        tile = self.tiles.get(context,self.tiles['x'])
+        return tile.get_surface(xidx,yidx,w,h)

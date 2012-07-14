@@ -25,13 +25,13 @@ class Backend:
         self.state.free_objs.update(room.initial_objs)
         self.map = Map()
         room.char_map = room.init_map_str.splitlines()
-        self.map.map = [[self.obj_from_char(char,room,x,y)
+        self.map.map = [[self.base_layers_from_char(char,room,x,y)
                             for x,char in enumerate(line)] for y,line in enumerate(room.char_map)]
         self.obj_map = room.init_obj_map
     
-    def obj_from_char(self,char,room,x,y):
-        objs = room.obj_from_char(char,room.char_map,x,y).copy()
-        for obj in objs.lst():
+    def base_layers_from_char(self,char,room,x,y):
+        objs = room.base_layers_from_char(char,room.char_map,x,y).copy()
+        for obj in objs.get_lst():
             obj.x = x
             obj.y = y
         return objs
@@ -112,21 +112,27 @@ class Backend:
         # TODO: work with large obj in map, not obj_map
         self.obj_map.convert_obj(old_obj,new_obj)
     
-    def get_map(self):
-        return self.map.map
-        
-    def get_contexts(self):
-        return self.map.get_contexts()
-
-    def get_obj_map(self):
-        return self.obj_map
-        
-    def get_visible_objs(self):
-        return self.state.free_objs
+    def get_mapsquare_at(self,x,y):
+        return MapSquare(self.map.get_layers_at(x,y), self.obj_map.get_layers_at(x,y), self.map.get_context_at(x,y))
     
-    def obj_in_room(self,key):
-        return key in self.state.free_objs
+    def get_mapsquares_by_rows(self):
+        return ( (x,y,self.get_mapsquare_at(x,y)) for x,y in self.map.get_coords_by_rows() )
+        
+    def get_map_size(self):
+        return self.map.map_size()
     
-    def obj_carried(self,key):
-        return key in self.state.carrying
+    # def get_map(self):
+    #     return self.map.map
+    #     
+    # def get_contexts(self):
+    #     return self.map.get_contexts()
+    # 
+    # def get_obj_map(self):
+    #     return self.obj_map
+    
+    # def obj_in_room(self,key):
+    #     return key in self.state.free_objs
+    # 
+    # def obj_carried(self,key):
+    #     return key in self.state.carrying
                 

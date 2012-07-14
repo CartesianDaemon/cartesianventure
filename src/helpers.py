@@ -4,7 +4,7 @@ class Bunch(dict):
     def __setattr__(self, attr, val):
         self[attr] = val
 
-class Struct():
+class Struct:
     pass
 
 def merge(*args):
@@ -38,3 +38,5 @@ def unionall(rects):
         return first_rect.unionall(list(rects))
     else:
         return Rect(0,0,0,0)
+
+DefaultArg = Struct()

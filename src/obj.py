@@ -4,13 +4,13 @@ from helpers import *
 class Defs(Bunch):
     pass
 
-class DummyObj():
+class DummyObj:
     def __init__(self,name):
         self.name = name
     def get_name_lower(self):
         return self.name
     
-class Obj(Bunch):
+class Obj(Bunch): #FIX: Remove "bunch"?
     def __init__(self,name,description="",graphic_source=None):
         self.name=name
         self.description=description
@@ -22,6 +22,7 @@ class Obj(Bunch):
         self.used_in_events_past = []
         self.used_in_events_future = []
         self.destroyed_by_event = []
+        self.context = ''
         
     def __hash__(self):
         return hash(self.key)
@@ -73,6 +74,9 @@ class Obj(Bunch):
             return self.destroyed_by_event + self.used_in_events_future
         else:
             return self.destroyed_by_event
+            
+    def draw_contiguously_with(self,other_layers):
+        return any( self.key == other_obj.key for other_obj in other_layers.lst)
         
 def make_objs(**kwargs):
     # return { k:Obj(k,*args) for k,args in kwargs.iteritems()}

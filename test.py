@@ -31,7 +31,12 @@
 import unittest
 
 from src.backend import *
+from src.frontend import *
 from src.helpers import *
+
+class TestSyntax(unittest.TestCase):
+    def test_double_comprehension(self):
+        self.assertEquals( tuple( b for a in ("abc","ABC") for b in a) , ("a","b","c","A","B","C") )
 
 class TestBunch(unittest.TestCase):
     def test_set(self):
@@ -41,49 +46,49 @@ class TestBunch(unittest.TestCase):
         self.assertEquals(bunch['foo'],'bar')
         self.assertEquals(bunch.xxx,'yyy')
 
-class TestMaybe(unittest.TestCase):
-    def test_maybe(self):
-        self.assertEquals(Maybe("abc").capitalize(),"Abc")
-        self.assertIsNone(Maybe(None).foo)
-        #with self.assertRaises(AttributeError):
-        #    var = Maybe(None)
-        #    var.capitalize
-        
-class TestRules(unittest.TestCase):
+class TestHelpers(unittest.TestCase):
     def test_merge(self):
         self.assertEquals(merge(dict(one=1),dict(two=2)),dict(one=1,two=2))
         self.assertEquals(merge(),dict())
 
-    def test_rule(self):
-        backend = Backend()
-        backend.load('distillery')
-        obj1 = backend.defs.bottle_ship
-        obj2 = backend.defs.reagent_a
-        self.assertFalse(backend.obj_in_room('bottle_a'))
-        backend.do('use',obj1,obj2)
-        self.assertTrue(backend.obj_in_room('bottle_a'))
+#     def test_maybe(self):
+#         self.assertEquals(Maybe("abc").capitalize(),"Abc")
+#         self.assertIsNone(Maybe(None).foo)
+#         #with self.assertRaises(AttributeError):
+#         #    var = Maybe(None)
+#         #    var.capitalize
 
-    def test_rule2(self):
-        backend = Backend()
-        backend.load('distillery')
-        self.assertTrue(backend.obj_in_room('bottle_ship'))
-        self.assertFalse(backend.obj_in_room('bottle_a'))
-        backend.do('pickup','bottle_ship')
-        self.assertFalse(backend.obj_in_room('bottle_ship'))
-        self.assertTrue(backend.obj_carried('bottle_ship'))
-        backend.do('use','bottle_ship','reagent_a')
-        self.assertFalse(backend.obj_carried('bottle_ship'))
-        self.assertTrue(backend.obj_carried('bottle_a'))
-    
-    def test_map(self):
-        backend = Backend()
-        backend.load('distillery')
-        map = backend.get_map()
-        self.assertEquals(map[1][1].obj,'floor')
-        self.assertEquals(map[0][1].obj,'wall')
-    
-    def test_frontend(self):
+class TestBackend(unittest.TestCase):
+    def setUp(self):
+        self.backend_distillery = Backend()
+        self.backend_distillery.load('distillery')
+
+    def test_1setup(self):
         pass
+    
+    def test_contexts(self):
+        self.assertEqual(self.backend_distillery.get_mapsquare_at(0,2).get_combined_mainobj().context,'br' )
+    
+    def test_verbs(self):
+        # self.backend_distillery.do('move',backend.get_obj_map()[4][6].get_obj())
+        pass
+    
+    def test_map_load(self):
+        self.assertEquals(self.backend_distillery.get_mapsquare_at(1,4).get_base_mainobj().key,'floorboards')
+        self.assertEquals(self.backend_distillery.get_mapsquare_at(0,4).get_base_mainobj().key,'wall')
 
+class TestFrontend(unittest.TestCase):
+    def setUp(self):
+        self.frontend = Frontend(default_room='distillery')
+    
+    def test_1setup(self):
+        pass
+    
+    def test_splash(self):
+        self.frontend.splash(timeout_ms=10)
+    
+    def test_step(self):
+        self.frontend.loop_step()
+        
 if __name__ == '__main__':
-    unittest.main()
+    unittest.main(verbosity=2)

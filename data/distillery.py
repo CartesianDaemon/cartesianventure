@@ -83,7 +83,7 @@ init_map_str = """\
 ###############
 """
 
-def obj_from_char(char,char_map,x,y):
+def base_layers_from_char(char,char_map,x,y):
     if char=='#':
         if x>0:
             return Layers(defs.floorboards, defs.wall)
