@@ -4,9 +4,17 @@ from helpers import *
 class Defs(Bunch):
     pass
 
+class DummyObj():
+    def __init__(self,name):
+        self.name = name
+    def get_name_lower(self):
+        return self.name
+    
 class Obj(Bunch):
     def __init__(self,name,description="",graphic_source=None):
-        self.update(name=name,description=description,graphic_source=graphic_source)
+        self.name=name
+        self.description=description
+        self.graphic_source=graphic_source
         self.hoverable = True
         self.can_support = False
         self.pickable = False
@@ -34,6 +42,26 @@ class Obj(Bunch):
         # TODO: if we have a link to the data structure we're in, return True if in map, False if in obj_map
         return self.pickable
     
+    def get_name_lower(self):
+        return self.name
+    
+    def get_name_cap(self):
+        return self.name.capitalize()
+
+    def get_verbs(self,obj1=DummyObj("...")):
+        if self is obj1:
+            obj1 = DummyObj("itself")
+        verb_list = { 'move' : "Move "+self.get_name_lower()+" to "+obj1.get_name_lower() ,
+                      'use'  : "Use "+self.get_name_lower()+" with "+obj1.get_name_lower(),
+                    }
+        return verb_list
+
+    def get_verb_remaining_arities(self,*args):
+        verb_arity_list = { 'move': 2,
+                            'use' : 2,
+                          }
+        return ( max(0,arity - 1 - len(args)) for verb, arity in verb_arity_list.iteritems() )
+        
     def get_undoable_events(self):
         if self.is_pickable():
             return self.created_by_event + self.used_in_events_past

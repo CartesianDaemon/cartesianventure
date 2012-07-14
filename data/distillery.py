@@ -6,40 +6,40 @@ from src.rules import *
 from src.helpers import *
 
 test_make_objs = make_objs(
-    id1 = Obj("Name1","Description1"),
-    id2 = Obj("Name2","Description2"),
+    id1 = Obj("name1","Description1"),
+    id2 = Obj("name2","Description2"),
 )
 
 initial_small_objs = make_objs(
-    crucible  = Obj("Crucible","An encrusted clay crucible",
+    crucible  = Obj("crucible","An encrusted clay crucible",
                     graphic_source=GraphicSource("data/img_circ/Bench.bmp",510,31,40,40,colorkey='topleft')),
-    crucible_w= Obj("Crucible","A clay crucible full of water",
+    crucible_w= Obj("crucible","A clay crucible full of water",
                     graphic_source=GraphicSource("data/img_circ/Bench.bmp",510,111,40,40,colorkey='topleft')),
-    bottle_ship     = Obj("Bottle with pirate ship","Conical flask with a teeny-weeny pirate ship constructed inside"),
-    bottle_chest    = Obj("Bottle with pirate chest","Conical flask with a teeny-weeny pirate chest constructed inside (the wooden sort), not the tatooed sort)"),
-    bottle_coin     = Obj("Bottle with doubloon","Conical flask with a giant pirate doubloon inside")
+    bottle_ship     = Obj("bottle with pirate ship","Conical flask with a teeny-weeny pirate ship constructed inside"),
+    bottle_chest    = Obj("bottle with pirate chest","Conical flask with a teeny-weeny pirate chest constructed inside (the wooden sort), not the tatooed sort)"),
+    bottle_coin     = Obj("bottle with doubloon","Conical flask with a giant pirate doubloon inside")
 )
 
 other_small_objs = make_objs(
-    bottle_a  = Obj("Bottle of dragons blood", "Conical flask with dragons blood (and some debris)"),
-    bottle_b  = Obj("Bottle of unicorn sweat", "Conical flask with unicorn sweat (and some debris)"),
-    bottle_c  = Obj("Bottle of gryphon tears", "Conical flask with gryphon tears (and some debris)"),
-    bottle_ab = Obj("Bottle of stuff", "Conical flask with some sort of murkey mixture in"),
-    bottle_ac = Obj("Bottle of stuff", "Conical flask with some sort of murkey mixture in"),
-    bottle_bc = Obj("Bottle of stuff", "Conical flask with some sort of murkey mixture in"),
+    bottle_a  = Obj("bottle of dragons blood", "Conical flask with dragons blood (and some debris)"),
+    bottle_b  = Obj("bottle of unicorn sweat", "Conical flask with unicorn sweat (and some debris)"),
+    bottle_c  = Obj("bottle of gryphon tears", "Conical flask with gryphon tears (and some debris)"),
+    bottle_ab = Obj("bottle of stuff", "Conical flask with some sort of murkey mixture in"),
+    bottle_ac = Obj("bottle of stuff", "Conical flask with some sort of murkey mixture in"),
+    bottle_bc = Obj("bottle of stuff", "Conical flask with some sort of murkey mixture in"),
 )
 
 background_objs = make_objs(
-#   floor           = Obj("Floor",graphic_source=GraphicSource("data/img_test/floor.png")),
-#   wall            = Obj("Wall",graphic_source=GraphicSource("data/img_test/wall.png")),
+#   floor           = Obj("floor",graphic_source=GraphicSource("data/img_test/floor.png")),
+#   wall            = Obj("wall",graphic_source=GraphicSource("data/img_test/wall.png")),
 
-#   floor           = Obj("Floor",graphic_source=GraphicSource("data/img_test/tiles.png",128,128,128,128)),
-#   wall            = Obj("Wall",graphic_source=GraphicSource("data/img_test/tiles.png",0,0,128,256,colorkey='topleft')),
+#   floor           = Obj("floor",graphic_source=GraphicSource("data/img_test/tiles.png",128,128,128,128)),
+#   wall            = Obj("wall",graphic_source=GraphicSource("data/img_test/tiles.png",0,0,128,256,colorkey='topleft')),
 
-    floorboards     = Obj("Floor", graphic_source=GraphicSource("data/img_circ/VILFLR.bmp",  40, 41,40,40,reps=6)),
-    crazypaving     = Obj("Floor", graphic_source=GraphicSource("data/img_circ/GRS2ROC.bmp",120,161,40,40)),
-    paving          = Obj("Floor", graphic_source=GraphicSource("data/img_circ/PAVE.bmp",    40, 41,40,40,reps=4)),
-    wall            = Obj("Wall",  graphic_source=ContextualGraphicSource(
+    floorboards     = Obj("floor", graphic_source=GraphicSource("data/img_circ/VILFLR.bmp",  40, 41,40,40,reps=6)),
+    crazypaving     = Obj("floor", graphic_source=GraphicSource("data/img_circ/GRS2ROC.bmp",120,161,40,40)),
+    paving          = Obj("floor", graphic_source=GraphicSource("data/img_circ/PAVE.bmp",    40, 41,40,40,reps=4)),
+    wall            = Obj("wall",  graphic_source=ContextualGraphicSource(
                                     x  = GraphicSource("data/img_circ/VILINT.bmp",160, 41,40,120,colorkey='topleft'),
                                     lr = GraphicSource("data/img_circ/VILINT.bmp",160, 41,40,120,colorkey='topleft',reps=2,transparent='atbottomofscreen'),
                                     tb = GraphicSource("data/img_circ/VILINT.bmp", 40,201,40,120,colorkey='topleft'),
@@ -48,7 +48,7 @@ background_objs = make_objs(
                                     bl = GraphicSource("data/img_circ/VILINT.bmp",345, 41,40,120,colorkey='topleft'),
                                     br = GraphicSource("data/img_circ/VILINT.bmp", 40, 41,40,120,colorkey='topleft'),
                                     )),
-    well            = Obj("Well", graphic_source=GraphicSource("data/img_test/well.png",0,0,128,128,colorkey='topleft')),
+    well            = Obj("well", graphic_source=GraphicSource("data/img_test/well.png",0,0,128,128,colorkey='topleft')),
 )
 
 for obj in background_objs.values():
@@ -59,12 +59,12 @@ background_objs.crazypaving.can_support = True
 background_objs.paving.can_support = True
 
 big_objs = make_objs(
-    meter           = Obj("Coin-operated swamp-gas meter",""),
-    bunsen          = Obj("Swamp-gas operated heater",""),
-    wishwell        = Obj("Wishing well",""),
-    reagent_a       = Obj("Barrel of dragon blood" , "Large barrel of dragons blood with a tap on the side"),
-    reagent_b       = Obj("Barrel of unicorn sweat", "Large barrel of unicorn sweat with a tap on the side"),
-    reagent_c       = Obj("Barrel of gryphon tears", "Large barrel of gryphon tears with a tap on the side"),
+    meter           = Obj("coin-operated swamp-gas meter",""),
+    bunsen          = Obj("swamp-gas operated heater",""),
+    wishwell        = Obj("wishing well",""),
+    reagent_a       = Obj("barrel of dragon blood" , "Large barrel of dragons blood with a tap on the side"),
+    reagent_b       = Obj("barrel of unicorn sweat", "Large barrel of unicorn sweat with a tap on the side"),
+    reagent_c       = Obj("barrel of gryphon tears", "Large barrel of gryphon tears with a tap on the side"),
 )
 
 for obj in initial_small_objs.values() + other_small_objs.values():

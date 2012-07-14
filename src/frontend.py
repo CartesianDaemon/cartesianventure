@@ -148,6 +148,7 @@ class Frontend:
                             self.backend.do_undo(self.menu_hit_rects[self.menu_hit_idx].redo_event)
                             self.menu_pos = None
                         elif self.menu_hit_rects[self.menu_hit_idx].tr:
+                            # TODO: For verb with more than one target object, add object to list and leave transitive menu open using get_verb_remaining_arities to test if nec
                             self.following_with_transitive_verb = self.menu_hit_rects[self.menu_hit_idx].verb
                             self.transitive_verb_object = tile_obj or tile_base
                         else:
@@ -179,12 +180,11 @@ class Frontend:
         r_desc = desc_text.get_rect().move(x-20,y-40)
         self.screen.blit( desc_text, r_desc.topleft )
         self.menu_hit_rects = []
-        verb_list = ( ('move',True,"Move "," to ..."),
-                      ('use', True,"Use "," with ..." ),
-                    )
-        for idx,(verb,tr,pre,suf) in enumerate(verb_list):
+        verb_list = self.menu_obj.get_verbs()
+        arity_list = self.menu_obj.get_verb_remaining_arities()
+        for idx,((verb,sentence),tr) in enumerate(zip(verb_list.iteritems(),arity_list)):
             text = txtlib.Text((verb_width, verb_height), 'freesans')
-            text.text = pre+self.menu_obj.name.lower()+suf
+            text.text = sentence
             text.update()
             r_verb = text.area.get_rect().move(x+verb_offset_x, y+verb_offset_y+verb_vstride*idx)
             if idx == self.menu_hit_idx:
@@ -233,15 +233,7 @@ class Frontend:
     
     def draw_transitive_menu(self,x,y):
         text = txtlib.Text((150,20), 'freesans')
-        if self.transitive_verb_object != self.menu_obj:
-            object_name = self.transitive_verb_object.name.lower()
-        else:
-            object_name = "..."
-        if self.following_with_transitive_verb == 'use':
-            prep = " with "
-        else:
-            prep = " onto "
-        text.text = self.following_with_transitive_verb.capitalize() + " " + self.menu_obj.name.lower() + prep + object_name
+        text.text = self.menu_obj.get_verbs(self.transitive_verb_object)[self.following_with_transitive_verb]
         text.update()
         r_verb = text.area.get_rect().move(x-30, y-30)
         self.screen.blit(text.area, r_verb.topleft)
