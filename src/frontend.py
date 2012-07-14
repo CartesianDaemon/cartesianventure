@@ -112,7 +112,7 @@ class Frontend:
                 return 'quit'
             elif event.type == MOUSEMOTION:
                 if self.following_with_transitive_verb:
-                    self.transitive_verb_object = curr_obj
+                    self.transitive_verb_putative_objects = self.transitive_verb_objects + [curr_obj]
                 else:
                     if curr_obj.is_hoverable():
                         self.last_mouse_pos = event.pos
@@ -130,25 +130,30 @@ class Frontend:
                                 break
             elif event.type == MOUSEBUTTONDOWN:
                 if self.following_with_transitive_verb:
-                    self.backend.do(self.following_with_transitive_verb,self.menu_obj,curr_obj)
-                    self.following_with_transitive_verb = None
-                    self.menu_pos = None
+                    menu_hit_rect = self.menu_hit_rects[self.menu_hit_idx]
+                    self.transitive_verb_objects.append(curr_obj)
+                    if self.menu_obj.get_remaining_verb_arity(menu_hit_rect.verb,*self.transitive_verb_objects)==0:
+                        self.backend.do(self.following_with_transitive_verb,self.menu_obj,*self.transitive_verb_objects)
+                        self.following_with_transitive_verb = None
+                        self.menu_pos = None
                 elif self.menu_pos:
                     if self.menu_hit_idx is not None:
-                        # Attach verb to mouse cursor
-                        if self.menu_hit_rects[self.menu_hit_idx].verb == '_undo':
-                            self.backend.do_undo(self.menu_hit_rects[self.menu_hit_idx].undo_event)
+                        menu_hit_rect = self.menu_hit_rects[self.menu_hit_idx]
+                        # Do transitive verb or attach intr verb to mouse cursor
+                        if menu_hit_rect.verb == '_undo':
+                            self.backend.do_undo(menu_hit_rect.undo_event)
                             self.menu_pos = None
-                        elif self.menu_hit_rects[self.menu_hit_idx].verb == '_redo':
-                            self.backend.do_undo(self.menu_hit_rects[self.menu_hit_idx].redo_event)
+                        elif menu_hit_rect.verb == '_redo':
+                            self.backend.do_redo(menu_hit_rect.redo_event)
                             self.menu_pos = None
-                        elif self.menu_hit_rects[self.menu_hit_idx].tr:
-                            # TODO: For verb with more than one target object, add object to list and leave transitive menu open using get_verb_remaining_arities to test if nec
-                            self.following_with_transitive_verb = self.menu_hit_rects[self.menu_hit_idx].verb
-                            self.transitive_verb_object = curr_obj
                         else:
-                            self.backend.do(self.following_with_transitive_verb,self.menu_obj)
-                            self.menu_pos = None
+                            self.transitive_verb_objects = []
+                            self.transitive_verb_putative_objects = []
+                            if self.menu_obj.get_remaining_verb_arity(menu_hit_rect.verb,*self.transitive_verb_objects)>0:
+                                self.following_with_transitive_verb = menu_hit_rect.verb
+                            else:
+                                self.backend.do(self.following_with_transitive_verb,*self.transitive_verb_objects)
+                                self.menu_pos = None
                     else:
                         self.menu_pos = None
                         self.last_mouse_pos = None
@@ -176,8 +181,7 @@ class Frontend:
         self.screen.blit( desc_text, r_desc.topleft )
         self.menu_hit_rects = []
         verb_list = self.menu_obj.get_verb_sentences_initcap()
-        arity_list = self.menu_obj.get_verb_remaining_arities()
-        for idx,((verb,sentence),tr) in enumerate(zip(verb_list.iteritems(),arity_list)):
+        for idx,(verb,sentence) in enumerate(verb_list):
             text = txtlib.Text((verb_width, verb_height), 'freesans')
             text.text = sentence
             text.update()
@@ -189,7 +193,6 @@ class Frontend:
             hit_rect_struct = Struct()
             hit_rect_struct.verb = verb
             hit_rect_struct.hit_rect = r_verb
-            hit_rect_struct.tr = tr
             self.menu_hit_rects.append(hit_rect_struct)
         
         if self.menu_obj.get_undoable_events():
@@ -228,7 +231,8 @@ class Frontend:
     
     def draw_transitive_menu(self,x,y):
         text = txtlib.Text((150,20), 'freesans')
-        text.text = self.menu_obj.get_verb_sentence_initcap(self.following_with_transitive_verb,self.transitive_verb_object)
+        text.text = self.menu_obj.get_verb_sentence_initcap(self.following_with_transitive_verb,
+                                                            *self.transitive_verb_putative_objects)
         text.update()
         r_verb = text.area.get_rect().move(x-30, y-30)
         self.screen.blit(text.area, r_verb.topleft)

@@ -8,7 +8,7 @@ class Bunch(dict):
 
 class Struct:
     pass
-
+    
 def merge(*args):
     ret = Bunch()
     for k,v in chain.from_iterable(d.iteritems() for d in args):

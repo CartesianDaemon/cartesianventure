@@ -68,14 +68,32 @@ class TestBackend(unittest.TestCase):
     def test_1setup(self):
         pass
     
+    def obj_at(self,x,y):
+        return self.backend_distillery.get_obj_at(x,y)
+    
     def test_contexts(self):
-        self.assertEqual(self.backend_distillery.get_obj_at(0,2).context,'br' )
+        self.assertEqual(self.obj_at(0,2).context,'br' )
+    
+    def test_verblist(self):
+        crucible = self.backend_distillery.defs.crucible
+        crucible_w = self.backend_distillery.defs.crucible_w
+        well = self.backend_distillery.defs.well
+        self.assertEqual(crucible.get_verb_sentence_normalcase('use'),"use crucible with ...")
+        self.assertEqual(crucible.get_verb_sentence_initcap('use'),"Use crucible with ...")
+        self.assertEqual(crucible.get_verb_sentence_initcap('use',crucible_w),"Use crucible with crucible")
+        self.assertEqual(crucible.get_verb_sentence_initcap('use',crucible),"Use crucible with itself")
+        self.assertEqual(len(tuple(self.obj_at(6,4).get_verb_sentences_normalcase())),3)
+        # self.assertEqual(len(tuple(self.obj_at(6,4).get_verb_sentences_normalcase(self.obj_at(8,3)))),3)
+        self.assertEqual(len(tuple(self.obj_at(8,3).get_verb_sentences_normalcase())),2)
+        self.assertEqual(len(tuple(self.obj_at(6,4).get_verb_sentences_initcap())),3)
+        # self.assertEqual(len(tuple(self.obj_at(6,4).get_verb_sentences_initcap(self.obj_at(8,3)))),3)
+        self.assertEqual(len(tuple(self.obj_at(8,3).get_verb_sentences_initcap())),2)
+        self.assertEqual(crucible.get_verb_arity('move'),2)
+        self.assertEqual(crucible.get_remaining_verb_arity('move'),1)
+        self.assertEqual(crucible.get_remaining_verb_arity('move',crucible),0)
     
     def do_verb(self,verb,x1,y1,x2,y2):
         self.backend_distillery.do(verb,self.backend_distillery.get_obj_at(x1,y1),self.backend_distillery.get_obj_at(x2,y2))
-    
-    def obj_at(self,x,y):
-        return self.backend_distillery.get_obj_at(x,y)
     
     def test_verbs(self):
         self.assertEquals(self.obj_at(6,4).key,'crucible')

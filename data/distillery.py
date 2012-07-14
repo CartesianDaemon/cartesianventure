@@ -5,40 +5,23 @@ from src.map import *
 from src.rules import *
 from src.helpers import *
 
-test_make_objs = make_objs(
-    id1 = Obj("name1","Description1"),
-    id2 = Obj("name2","Description2"),
+##############################################################
+#
+# Background objects
+#
+##############################################################
+
+floor_objs = make_objs(
+   floorboards     = Obj("floor", graphic_source=GraphicSource("data/img_circ/VILFLR.bmp",  40, 41,40,40,reps=6)),
+   crazypaving     = Obj("floor", graphic_source=GraphicSource("data/img_circ/GRS2ROC.bmp",120,161,40,40)),
+   paving          = Obj("floor", graphic_source=GraphicSource("data/img_circ/PAVE.bmp",    40, 41,40,40,reps=4)),
 )
 
-initial_small_objs = make_objs(
-    crucible  = Obj("crucible","An encrusted clay crucible",
-                    graphic_source=GraphicSource("data/img_circ/Bench.bmp",510,31,40,40,colorkey='topleft')),
-    crucible_w= Obj("crucible","A clay crucible full of water",
-                    graphic_source=GraphicSource("data/img_circ/Bench.bmp",510,111,40,40,colorkey='topleft')),
-    bottle_ship     = Obj("bottle with pirate ship","Conical flask with a teeny-weeny pirate ship constructed inside"),
-    bottle_chest    = Obj("bottle with pirate chest","Conical flask with a teeny-weeny pirate chest constructed inside (the wooden sort), not the tatooed sort)"),
-    bottle_coin     = Obj("bottle with doubloon","Conical flask with a giant pirate doubloon inside")
-)
+for obj in floor_objs.values():
+    obj.hoverable = False
+    obj.can_support = True
 
-other_small_objs = make_objs(
-    bottle_a  = Obj("bottle of dragons blood", "Conical flask with dragons blood (and some debris)"),
-    bottle_b  = Obj("bottle of unicorn sweat", "Conical flask with unicorn sweat (and some debris)"),
-    bottle_c  = Obj("bottle of gryphon tears", "Conical flask with gryphon tears (and some debris)"),
-    bottle_ab = Obj("bottle of stuff", "Conical flask with some sort of murkey mixture in"),
-    bottle_ac = Obj("bottle of stuff", "Conical flask with some sort of murkey mixture in"),
-    bottle_bc = Obj("bottle of stuff", "Conical flask with some sort of murkey mixture in"),
-)
-
-background_objs = make_objs(
-#   floor           = Obj("floor",graphic_source=GraphicSource("data/img_test/floor.png")),
-#   wall            = Obj("wall",graphic_source=GraphicSource("data/img_test/wall.png")),
-
-#   floor           = Obj("floor",graphic_source=GraphicSource("data/img_test/tiles.png",128,128,128,128)),
-#   wall            = Obj("wall",graphic_source=GraphicSource("data/img_test/tiles.png",0,0,128,256,colorkey='topleft')),
-
-    floorboards     = Obj("floor", graphic_source=GraphicSource("data/img_circ/VILFLR.bmp",  40, 41,40,40,reps=6)),
-    crazypaving     = Obj("floor", graphic_source=GraphicSource("data/img_circ/GRS2ROC.bmp",120,161,40,40)),
-    paving          = Obj("floor", graphic_source=GraphicSource("data/img_circ/PAVE.bmp",    40, 41,40,40,reps=4)),
+wall_objs = make_objs(
     wall            = Obj("wall",  graphic_source=ContextualGraphicSource(
                                     x  = GraphicSource("data/img_circ/VILINT.bmp",160, 41,40,120,colorkey='topleft'),
                                     lr = GraphicSource("data/img_circ/VILINT.bmp",160, 41,40,120,colorkey='topleft',reps=2,transparent='atbottomofscreen'),
@@ -48,29 +31,17 @@ background_objs = make_objs(
                                     bl = GraphicSource("data/img_circ/VILINT.bmp",345, 41,40,120,colorkey='topleft'),
                                     br = GraphicSource("data/img_circ/VILINT.bmp", 40, 41,40,120,colorkey='topleft'),
                                     )),
+)
+
+for obj in wall_objs.values():
+    obj.hoverable = False
+
+fixed_objs = make_objs(
     well            = Obj("well", graphic_source=GraphicSource("data/img_test/well.png",0,0,128,128,colorkey='topleft')),
 )
 
-for obj in background_objs.values():
-    obj.hoverable = False
-
-background_objs.floorboards.can_support = True
-background_objs.crazypaving.can_support = True
-background_objs.paving.can_support = True
-
-big_objs = make_objs(
-    meter           = Obj("coin-operated swamp-gas meter",""),
-    bunsen          = Obj("swamp-gas operated heater",""),
-    wishwell        = Obj("wishing well",""),
-    reagent_a       = Obj("barrel of dragon blood" , "Large barrel of dragons blood with a tap on the side"),
-    reagent_b       = Obj("barrel of unicorn sweat", "Large barrel of unicorn sweat with a tap on the side"),
-    reagent_c       = Obj("barrel of gryphon tears", "Large barrel of gryphon tears with a tap on the side"),
-)
-
-for obj in initial_small_objs.values() + other_small_objs.values():
-    obj.pickable = True
-
-defs = merge(initial_small_objs,other_small_objs,background_objs,big_objs)
+for obj in floor_objs.values():
+    pass
 
 init_map_str = """\
                
@@ -96,21 +67,41 @@ def base_layers_from_char(char,char_map,x,y):
     if char=='W':
         return Layers(defs.floorboards,defs.well)
 
+##############################################################
+#
+# Pick-up-able objects
+#
+##############################################################
+        
+pickable_objs = make_objs(
+    crucible  = Obj("crucible","An encrusted clay crucible",
+                    graphic_source=GraphicSource("data/img_circ/Bench.bmp",510,31,40,40,colorkey='topleft')),
+    crucible_w= Obj("crucible","A clay crucible full of water",
+                    graphic_source=GraphicSource("data/img_circ/Bench.bmp",508,112,40,40,colorkey='topleft')),
+)
+
+for obj in pickable_objs.values():
+    obj.pickable = True
+        
 init_obj_map = ObjMap( [[ None for char in line] for line in init_map_str.splitlines()] )
+init_obj_map.create_at(6,4,pickable_objs['crucible'])
 
-init_obj_map.create_at(6,4,initial_small_objs['crucible'])
-
-initial_objs = merge(initial_small_objs,big_objs)
+##############################################################
+#
+# Rules
+#
+##############################################################
 
 rules = Rules()
-
 rules.add_rule('use',('crucible','crucible_w'),('well',))
 
+##############################################################
+#
+# Global stuff
+#
+##############################################################
 
-
-
-
-
+defs = merge(pickable_objs,wall_objs,floor_objs,fixed_objs)
 
 
 

@@ -4,25 +4,15 @@ from src.obj import *
 from src.map import *
 from src.rules import *
 
-class State(Bunch):
-    def __init__(self):
-        self['free_objs'] = {}
-        self['carrying'] = {}
-    
-    def room_list(self):
-        return (self.free_objs,self.carrying)
- 
 class Backend:
     def __init__(self):
         self.defs = Bunch()
         self.rules = Rules()
-        self.state = State()
 
     def load(self,module):
         room = data.__dict__[module];
         self.defs.update(room.defs)
         self.rules.update(room.rules)
-        self.state.free_objs.update(room.initial_objs)
         self.map = Map()
         room.char_map = room.init_map_str.splitlines()
         self.map.map = [[self.base_layers_from_char(char,room,x,y)
@@ -37,11 +27,8 @@ class Backend:
         return objs
     
     def do(self,verb,*arg_objs):
-        if verb=='pickup':
-            obj = arg_objs[0]
-            self.state.carrying[obj] = self.state.free_objs[obj]
-            del self.state.free_objs[obj]
-        elif verb=='move':
+        print (verb,)+tuple(obj.name for obj in arg_objs)
+        if verb=='move':
             obj = arg_objs[0]
             target = arg_objs[1]
             if target.can_support:
@@ -51,7 +38,7 @@ class Backend:
             if not rule:
                 self.do_default_rule_failure()
             else:
-                self.do_rule(rule,arg_objs)
+                self._do_rule(rule,arg_objs)
     
     def do_undo(self,undo_event):
         pass
@@ -59,33 +46,33 @@ class Backend:
     def do_redo(self,redo_event):
         pass
 
-    def do_rule(self,rule,arg_objs):
-                new_objs = rule.out_objs
-                event = Event()
-                event.verb = rule.verb
-                event.old_objs = []
-                event.new_objs = []
-                event.other_prereqs = []
-                for i,new_key in enumerate(new_objs):
-                    old_obj = arg_objs[i]
-                    if new_key == '_pass':
-                        old_obj.used_in_events_past.append(event)
-                        event.other_prereqs.append(old_obj.copy())
-                    elif new_key == '_del':
-                        old_obj.used_in_events_past.append(event)
-                        self.remove_obj(old_obj)
-                        event.old_objs.append(old_obj.copy())
-                    else:
-                        new_obj = self.defs[new_key].copy()
-                        new_obj.created_by_event = [event]
-                        old_obj.used_in_events_past.append(event)
-                        event.old_objs.append(old_obj.copy())
-                        event.new_objs.append(new_obj.copy())
-                        self.convert_obj(old_obj,new_obj)
-                        # TODO: create extra new objs, eg. shavings
-                        # TODO: also work if object is carried
-                # TODO: create any entirely new objs
-                self.store_new_event(event)
+    def _do_rule(self,rule,arg_objs):
+        new_objs = rule.out_objs
+        event = Event()
+        event.verb = rule.verb
+        event.old_objs = []
+        event.new_objs = []
+        event.other_prereqs = []
+        for i,new_key in enumerate(new_objs):
+            old_obj = arg_objs[i]
+            if new_key == '_pass':
+                old_obj.used_in_events_past.append(event)
+                event.other_prereqs.append(old_obj.copy())
+            elif new_key == '_del':
+                old_obj.used_in_events_past.append(event)
+                self.remove_obj(old_obj)
+                event.old_objs.append(old_obj.copy())
+            else:
+                new_obj = self.defs[new_key].copy()
+                new_obj.created_by_event = [event]
+                old_obj.used_in_events_past.append(event)
+                event.old_objs.append(old_obj.copy())
+                event.new_objs.append(new_obj.copy())
+                self.convert_obj(old_obj,new_obj)
+                # TODO: create extra new objs, eg. shavings
+                # TODO: also work if object is carried
+        # TODO: create any entirely new objs
+        self.store_new_event(event)
             
     def store_new_event(self,event):
         # currently only stored in links from objects, but may want a list of "initial events" which don't depend on any

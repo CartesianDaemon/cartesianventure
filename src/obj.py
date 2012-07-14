@@ -1,15 +1,37 @@
 from graphic_source import *
 from helpers import *
+from itertools import izip_longest
 
 class Defs(Bunch):
     pass
-
-class DummyObj:
-    def __init__(self,name):
-        self.name = name
-    def get_name_normalcase(self):
-        return self.name
     
+class Verb:
+    def __init__(self,*args):
+        self.verb_parts = args
+    
+    def arity(self):
+        return len(self.verb_parts)-1
+    
+    def get_sentence_normalcase(self,*all_objs):
+        # Typical example:
+        #  verb_parts = ( "blow ", " with ",   ",",          " and ", " up" )
+        #  all_objs   = ( "enemy", "dynamite", "long cable", "...",   ""    )
+        # becomes "Blow enemy with dynamite, long cable and ... up"
+        sentence = ""
+        n_objs = len(all_objs)
+        assert n_objs <= self.arity()
+        for idx, (verb_part, obj) in enumerate(izip_longest(self.verb_parts,all_objs)):
+            sentence += verb_part
+            if idx==0:
+                sentence += obj.get_name_normalcase()
+            elif obj is all_objs[0]:
+                sentence += "itself"
+            elif obj is not None:
+                sentence += obj.get_name_normalcase()
+            elif idx < self.arity():
+                sentence += "..."
+        return sentence
+            
 class Obj():
     def __init__(self,name,description="",graphic_source=None):
         self.name=name
@@ -48,30 +70,47 @@ class Obj():
     
     def get_name_initcap(self):
         return capitalize_first(self.name)
+        
+    def _enabled_verbs(self):
+        return ['move','use','examine'] if self.pickable else ['use','examine']
+            
+    def _get_verb_def(self,verb,*other_objs):
+        d = dict(
+            # Number of objects is determined by number of text strings, including usually empty string at end
+            move = Verb( "move ",    (" to " if not other_objs else " onto "), "" ),
+            use  = Verb( "use ", " with ", "") if self.pickable else Verb( "use ", "" ),
+            examine = Verb( "examine ", "" ),
+        )
+        return d[verb]
 
-    def get_verb_sentences_normalcase(self,obj1=DummyObj("...")):
-        if self is obj1:
-            obj1 = DummyObj("itself")
-        move_prep = " to " if obj1.name=="..." else " onto " 
-        verb_list = { 'move' : "move "+self.get_name_normalcase()+move_prep+obj1.get_name_normalcase() ,
-                      'use'  : "use "+self.get_name_normalcase()+" with "+obj1.get_name_normalcase(),
-                    }
-        return verb_list
+    def get_verb_sentence_normalcase(self,verb,*other_objs):
+        assert verb in self._enabled_verbs()
+        all_objs = (self,) + other_objs
+        return self._get_verb_def(verb,*other_objs).get_sentence_normalcase(*all_objs)
 
-    def get_verb_sentences_initcap(self,*args):
-        return { k:capitalize_first(v) for k,v in self.get_verb_sentences_normalcase(*args).iteritems() }
+    # def get_verb_sentences_normalcase(self,*other_objs):
+    def get_verb_sentences_normalcase(self):
+        if 'other_objs' not in locals(): other_objs = ()
+        all_objs = (self,) + other_objs
+        return ( (verb,self.get_verb_sentence_normalcase(verb,*other_objs)) for verb in self._enabled_verbs() )
 
-    def get_verb_sentence_normalcase(self,verb,*args):
-        return self.get_verb_sentences_normalcase(*args)[verb]
+    # def get_verb_sentences_initcap(self,*other_objs):
+    def get_verb_sentences_initcap(self):
+        if 'other_objs' not in locals(): other_objs = ()
+        return ( (verb,capitalize_first(sentence)) for verb,sentence in self.get_verb_sentences_normalcase(*other_objs) )
 
     def get_verb_sentence_initcap(self,verb,*args):
         return capitalize_first(self.get_verb_sentence_normalcase(verb,*args))
 
-    def get_verb_remaining_arities(self,*args):
-        verb_arity_list = { 'move': 2,
-                            'use' : 2,
-                          }
-        return ( max(0,arity - 1 - len(args)) for verb, arity in verb_arity_list.iteritems() )
+    def get_verb_arity(self,verb,*other_objs):
+        assert verb in self._enabled_verbs()
+        return self._get_verb_def(verb,*other_objs).arity()
+
+    def get_remaining_verb_arity(self,verb,*other_objs):
+        all_objs = (self,) + other_objs
+        remaining_arity = self.get_verb_arity(verb,*other_objs) - len(all_objs)
+        assert remaining_arity >= 0
+        return max(0,remaining_arity)
         
     def get_undoable_events(self):
         if self.is_pickable():
