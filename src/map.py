@@ -7,25 +7,11 @@ class MapSquare:
         self.obj_layers = obj_layers
         self.base_layers.get_obj().context = base_context
     
-    # FIX: Remove base* and obj* functions and just have "get_lst" and "get_mainobj"
-    
-    def get_base_lst(self):
-        return self.base_layers.get_lst()
-    
-    def get_base_mainobj(self):
-        return self.base_layers.get_obj()
-    
-    def get_obj_lst(self):
-        return self.obj_layers.get_lst()
-        
-    def get_obj_mainobj(self):
-        return self.obj_layers.get_obj()
-        
     def get_combined_mainobj(self):
         return self.obj_layers.get_obj() or self.base_layers.get_obj()
     
     def get_combined_lst(self):
-        return self.get_base_lst() + self.get_obj_lst()
+        return self.base_layers.get_lst() + self.obj_layers.get_lst()
 
 class Layers:
     def __init__(self,*args):
@@ -59,13 +45,12 @@ class Map:
 
     def get_context_at(self,x,y,obj = DefaultArg):
         if obj == DefaultArg: obj = self.map[y][x].get_obj()
-        # FIX: Use tuple comprehension not list comprehension
         adj_coords = ( ('t',0,-1),
                        ('b',0,+1),
                        ('l',-1,0),
                        ('r',+1,0), )
         adj_layers = ( (char,self.get_layers_at_or_none(x+dx,y+dy)) for char,dx,dy in adj_coords)
-        return ''.join( [ char for char,layers in adj_layers if obj.draw_contiguously_with(layers) ] ) 
+        return ''.join( char for char,layers in adj_layers if obj.draw_contiguously_with(layers) ) 
 
     def get_layers_at(self,x,y):
         assert self.is_in_map(x,y)

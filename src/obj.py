@@ -10,7 +10,7 @@ class DummyObj:
     def get_name_lower(self):
         return self.name
     
-class Obj(Bunch): #FIX: Remove "bunch"?
+class Obj():
     def __init__(self,name,description="",graphic_source=None):
         self.name=name
         self.description=description
