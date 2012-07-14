@@ -87,7 +87,7 @@ class ObjMap:
         old_obj.x = None
         
     def move_to(self,x,y,obj):
-        # assert self.obj_map[y][x] == obj
+        assert self.obj_map[obj.y][obj.x] == obj
         self.obj_map[obj.y][obj.x] = None 
         obj.x, obj.y = x, y
         self.obj_map[y][x] = obj
