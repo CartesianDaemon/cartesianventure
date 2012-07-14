@@ -111,7 +111,7 @@ class Frontend:
                 # tile_base = self.backend.get_map()[tile_y][tile_x].get_obj()
                 # tile_obj = self.backend.get_obj_map().get_obj_at(tile_x,tile_y)
                 curr_obj = self.backend.get_obj_at(tile_x,tile_y)
-            if (event.type == QUIT) or (event.type == KEYDOWN and event.key == K_ESCAPE) :
+            if (event.type == QUIT) or (event.type == KEYDOWN and event.key == K_F4 and event.mod&KMOD_ALT ):
                 return 'quit'
             elif event.type == MOUSEMOTION:
                 if self.following_with_transitive_verb:
