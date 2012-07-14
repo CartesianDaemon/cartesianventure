@@ -34,6 +34,8 @@ class Backend:
             target = arg_objs[1]
             if target.can_support:
                 self.move_obj(target.x,target.y,obj)
+            else:
+                self.print_msg("I can't put it there")
         elif verb=='examine':
             assert len(arg_objs)==1
             msg = arg_objs[0].get_examine_text()

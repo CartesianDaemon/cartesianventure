@@ -26,6 +26,7 @@
 # Verb menu, undo menu (nonfunctional), refactored mapsquare, minor fixes
 # Move on/onto. Verb blah with itself.
 # Fix capitalization. List of verbs from one place.
+# Examine verb. Intransitive verbs for fixed objects.
 
 import unittest
 

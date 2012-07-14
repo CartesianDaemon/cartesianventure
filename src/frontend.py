@@ -14,6 +14,7 @@ from src.backend import Backend
 from src.graphic_source import GraphicSource # For testing
 
 enable_splash = 'nosplash' not in sys.argv
+log_events = 'logevents' in sys.argv
 
 class Frontend:
     def __init__(self,default_room):
@@ -103,6 +104,8 @@ class Frontend:
         
     def handle_events(self):
         for event in pygame.event.get():
+            if log_events:
+                print str(event)+", #logged event"
             if event.type in (MOUSEBUTTONDOWN,MOUSEBUTTONUP,MOUSEMOTION):
                 tile_x, tile_y = (xy / tile_wh for xy, tile_wh in zip(event.pos,self.get_default_tile_size()))
                 # tile_base = self.backend.get_map()[tile_y][tile_x].get_obj()
