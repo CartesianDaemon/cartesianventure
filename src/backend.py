@@ -74,8 +74,11 @@ class Backend:
                 # TODO: also work if object is carried
         # TODO: create any entirely new objs
         self.store_new_event(event)
-        if rule.get_msg(): print rule.get_msg()
-            
+        if rule.get_msg(): self.print_msg(rule.get_msg())
+    
+    def print_msg(self,msg):
+        print msg
+    
     def store_new_event(self,event):
         # currently only stored in links from objects, but may want a list of "initial events" which don't depend on any
         pass

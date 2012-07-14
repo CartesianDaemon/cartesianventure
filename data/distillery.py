@@ -93,7 +93,8 @@ init_obj_map.create_at(6,4,pickable_objs['crucible'])
 ##############################################################
 
 rules = Rules()
-rules.add_rule('use',('crucible','crucible_w'),('well',))
+rules.add_rule('use',('crucible','crucible_w'),('well',),msg="I fill the crucible from the well")
+rules.add_rule('use',('well','_pass'),msg="I wash my face")
 
 ##############################################################
 #
