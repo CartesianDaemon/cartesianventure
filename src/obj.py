@@ -52,7 +52,8 @@ class Obj():
     def get_verbs(self,obj1=DummyObj("...")):
         if self is obj1:
             obj1 = DummyObj("itself")
-        verb_list = { 'move' : "Move "+self.get_name_lower()+" to "+obj1.get_name_lower() ,
+        move_prep = " to " if obj1.name=="..." else " onto " 
+        verb_list = { 'move' : "Move "+self.get_name_lower()+move_prep+obj1.get_name_lower() ,
                       'use'  : "Use "+self.get_name_lower()+" with "+obj1.get_name_lower(),
                     }
         return verb_list

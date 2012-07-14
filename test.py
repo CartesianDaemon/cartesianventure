@@ -23,14 +23,7 @@
 # 
 # 14 July 2012
 #
-# Verb menu, undo menu (nonfunctional), refactored mapsquare
-
-# TODO tidies of hover menus:
-#  - use consistent text rendering based on font.render
-#  - figure out how to get padding with font.render
-#  - change colour when over hit rect
-#  - background for description
-#  - brighter color for following transitive verb box
+# Verb menu, undo menu (nonfunctional), refactored mapsquare, minor fixes
 
 import unittest
 

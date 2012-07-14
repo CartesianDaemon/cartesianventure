@@ -84,13 +84,6 @@ class Backend:
                         self.convert_obj(old_obj,new_obj)
                         # TODO: create extra new objs, eg. shavings
                         # TODO: also work if object is carried
-                    #for carried_or_room in self.state.room_list():
-                    #    if arg_objs[i] in carried_or_room:
-                    #        del carried_or_room[ arg_objs[i] ]
-                    #        carried_or_room[new_key] = self.defs[new_key]
-                    #        break
-                    #else:
-                    #    self.state.free_objs[new_key] = self.defs[new_key]
                 # TODO: create any entirely new objs
                 self.store_new_event(event)
             
