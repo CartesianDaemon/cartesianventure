@@ -175,7 +175,7 @@ class Frontend:
         r_desc = desc_text.get_rect().move(x-20,y-40)
         self.screen.blit( desc_text, r_desc.topleft )
         self.menu_hit_rects = []
-        verb_list = self.menu_obj.get_verbs()
+        verb_list = self.menu_obj.get_verb_sentences_initcap()
         arity_list = self.menu_obj.get_verb_remaining_arities()
         for idx,((verb,sentence),tr) in enumerate(zip(verb_list.iteritems(),arity_list)):
             text = txtlib.Text((verb_width, verb_height), 'freesans')
@@ -228,7 +228,7 @@ class Frontend:
     
     def draw_transitive_menu(self,x,y):
         text = txtlib.Text((150,20), 'freesans')
-        text.text = self.menu_obj.get_verbs(self.transitive_verb_object)[self.following_with_transitive_verb]
+        text.text = self.menu_obj.get_verb_sentence_initcap(self.following_with_transitive_verb,self.transitive_verb_object)
         text.update()
         r_verb = text.area.get_rect().move(x-30, y-30)
         self.screen.blit(text.area, r_verb.topleft)

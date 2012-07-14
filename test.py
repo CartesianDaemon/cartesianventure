@@ -24,6 +24,8 @@
 # 14 July 2012
 #
 # Verb menu, undo menu (nonfunctional), refactored mapsquare, minor fixes
+# Move on/onto. Verb blah with itself.
+# 
 
 import unittest
 
@@ -47,6 +49,9 @@ class TestHelpers(unittest.TestCase):
     def test_merge(self):
         self.assertEquals(merge(dict(one=1),dict(two=2)),dict(one=1,two=2))
         self.assertEquals(merge(),dict())
+        
+    def test_capitalize_first(self):
+        self.assertEquals(capitalize_first("i have an iPad"),"I have an iPad")        
 
 #     def test_maybe(self):
 #         self.assertEquals(Maybe("abc").capitalize(),"Abc")

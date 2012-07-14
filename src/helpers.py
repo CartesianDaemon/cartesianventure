@@ -40,3 +40,7 @@ def unionall(rects):
         return Rect(0,0,0,0)
 
 DefaultArg = Struct()
+
+def capitalize_first(str):
+    ret = str[0].capitalize() + str[1:]
+    return ret

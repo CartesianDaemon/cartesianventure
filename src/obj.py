@@ -7,7 +7,7 @@ class Defs(Bunch):
 class DummyObj:
     def __init__(self,name):
         self.name = name
-    def get_name_lower(self):
+    def get_name_normalcase(self):
         return self.name
     
 class Obj():
@@ -43,20 +43,29 @@ class Obj():
         # TODO: if we have a link to the data structure we're in, return True if in map, False if in obj_map
         return self.pickable
     
-    def get_name_lower(self):
+    def get_name_normalcase(self):
         return self.name
     
-    def get_name_cap(self):
-        return self.name.capitalize()
+    def get_name_initcap(self):
+        return capitalize_first(self.name)
 
-    def get_verbs(self,obj1=DummyObj("...")):
+    def get_verb_sentences_normalcase(self,obj1=DummyObj("...")):
         if self is obj1:
             obj1 = DummyObj("itself")
         move_prep = " to " if obj1.name=="..." else " onto " 
-        verb_list = { 'move' : "Move "+self.get_name_lower()+move_prep+obj1.get_name_lower() ,
-                      'use'  : "Use "+self.get_name_lower()+" with "+obj1.get_name_lower(),
+        verb_list = { 'move' : "move "+self.get_name_normalcase()+move_prep+obj1.get_name_normalcase() ,
+                      'use'  : "use "+self.get_name_normalcase()+" with "+obj1.get_name_normalcase(),
                     }
         return verb_list
+
+    def get_verb_sentences_initcap(self,*args):
+        return { k:capitalize_first(v) for k,v in self.get_verb_sentences_normalcase(*args).iteritems() }
+
+    def get_verb_sentence_normalcase(self,verb,*args):
+        return self.get_verb_sentences_normalcase(*args)[verb]
+
+    def get_verb_sentence_initcap(self,verb,*args):
+        return capitalize_first(self.get_verb_sentence_normalcase(verb,*args))
 
     def get_verb_remaining_arities(self,*args):
         verb_arity_list = { 'move': 2,
