@@ -195,23 +195,13 @@ class Frontend:
         x,y = self.get_screen_from_tile_coords( * self.get_tile_from_screen_coords((mouse_x,mouse_y)) )
         x += self.get_default_tile_size()[0]/2
         y += self.get_default_tile_size()[1]/2
-        verb_width , verb_height = 120 , 20
-        undo_width, undo_height = 180, verb_height
         verb_vpadding = 10
-        verb_vstride = verb_height+verb_vpadding
         verb_offset_x, verb_offset_y = +0,+20
-        # r_verbs = Rect(x+verb_offset_x,y+verb_offset_y,verb_width,0)
-        # r_undos = Rect(x+verb_offset_x,y+verb_offset_y,verb_width,0)
         
         short_desc = self.menu_obj.get_short_desc()
         if short_desc:
-            # desc_font = pygame.font.Font(None,25)
-            # desc_surface = desc_font.render(short_desc,1,(10,10,10),(255,255,255))
             desc_obj = render_text(short_desc, **render_desc_defaults )
-            desc_surface = desc_obj.get_surface()
-            r_desc = desc_surface.get_rect().move(x-20,y-40)
-            desc_obj.blit_to( self.screen, r_desc.topleft )
-            # self.screen.blit( desc_surface, r_desc.topleft )
+            desc_obj.blit_to( self.screen, (x-20,y-40) )
             
         self.menu_hit_rects = []
         verb_list = self.menu_obj.get_verb_sentences_initcap()

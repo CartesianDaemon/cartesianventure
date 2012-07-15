@@ -72,6 +72,23 @@ class TestHelpers(unittest.TestCase):
 
     def test_enumerate_2d(self):
         self.assertEquals(tuple(enumerate_2d(["ab","pq"])),( (0,0,'a'),(1,0,'b'),(0,1,'p'),(1,1,'q'), ))
+        
+    def test_pos(self):
+        pos1 = Pos(10,20)
+        self.assertEquals(pos1.x,10)
+        self.assertEquals(pos1.y,20)
+        pos2 = (5,6) + pos1
+        self.assertEquals(pos2.x,15)
+        self.assertEquals(pos2.y,26)
+        pos2 += Pos( (-10,-10) )
+        self.assertEquals(pos2.x,5)
+        self.assertEquals(pos2.y,16)
+        for idx,x_y in enumerate(pos2):
+            self.assertEquals( x_y, 5 if idx==0 else 16)
+        with self.assertRaises(IndexError): pos2[-1]
+        with self.assertRaises(IndexError): pos2[2]
+        with self.assertRaises(IndexError): pos2['foo']
+                
 #     def test_maybe(self):
 #         self.assertEquals(Maybe("abc").capitalize(),"Abc")
 #         self.assertIsNone(Maybe(None).foo)
@@ -150,7 +167,7 @@ class TestFrontend(unittest.TestCase):
         filenames = fnmatch.filter(os.listdir("."),"test*.eventlog.bin")
         self.assertTrue(filenames)
         for filename in filenames:
-            print "\nPlaying back: " + filename + ": "
+            # print "\nPlaying back: " + filename + ": "
             my_frontend = Frontend(default_room='distillery')
             fh = open(filename,"rb")
             try:

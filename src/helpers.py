@@ -1,5 +1,6 @@
 # Standard modules
 from itertools import chain
+from numbers import Number
 
 class Bunch(dict):
     def __getattr__(self, attr):
@@ -15,6 +16,22 @@ class dict_dict:
         if not key in self.store:
             self.store[key] = {}
         return self.store[key]
+
+class Pos:
+    def __init__(self,*args):
+        iter_args = args[0] if len(args)==1 else args
+        self.x, self.y = iter_args
+        assert isinstance(self.x,Number)
+
+    def __getitem__(self,idx):
+        if not 0 <= idx <=1: raise IndexError
+        return (self.x,self.y)[idx]
+        
+    def __add__(self,other):
+        return Pos(self.x+other[0],self.y+other[1])
+        
+    def __radd__(self,other):
+        return self.__add__(other)
 
 class Struct:
     pass
