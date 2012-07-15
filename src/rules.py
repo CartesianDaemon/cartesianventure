@@ -9,7 +9,7 @@ class Rule:
     def __init__(self,verb,*arg_pairs,**kwargs):
         self.verb = verb
         self.in_objs = tuple(pair[0] for pair in arg_pairs)
-        self.out_objs = tuple( (pair[-1] if len(pair)>=1 else '_pass') for pair in arg_pairs)
+        self.out_objs = tuple( (pair[-1] if len(pair)>=2 else '_pass') for pair in arg_pairs)
         self.msg = kwargs.get('msg') or ""
 
     def get_msg(self):

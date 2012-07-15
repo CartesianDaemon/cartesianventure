@@ -112,7 +112,7 @@ class TestBackend(unittest.TestCase):
         self.assertEqual(crucible.get_remaining_verb_arity('move',crucible),0)
     
     def do_verb(self,verb,x1,y1,x2,y2):
-        self.backend_distillery.do(verb,self.backend_distillery.get_obj_at(x1,y1),self.backend_distillery.get_obj_at(x2,y2))
+        self.backend_distillery.do(verb,self.obj_at(x1,y1),self.obj_at(x2,y2))
     
     def test_verbs(self):
         self.assertEquals(self.obj_at(6,4).key,'crucible')

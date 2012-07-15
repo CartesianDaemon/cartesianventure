@@ -16,13 +16,22 @@ class MapSquare:
 class Layers:
     def __init__(self,*args):
         self.lst = args
-        self.obj = args[-1] if len(args)>=1 else None
+        self.obj = self.lst[-1] if len(self.lst)>=1 else None
         
     def get_lst(self):
         return self.lst
         
     def get_obj(self):
         return self.obj
+        
+    def set_obj(self, new_obj):
+        assert len(self.lst) == 0
+        self.lst = (new_obj,)
+        self.obj = self.lst[-1]
+        
+    def remove_all(self):
+        self.lst = ()
+        self.obj = None
         
     def add_overlays(*args):
         lst.extend(args)
@@ -41,7 +50,7 @@ class Map:
     def make_map_from_key(self,init_map_str,charkey_func):
         char_map = init_map_str.splitlines()
         self.map =     [ [ None for _ in row ] for row in char_map]
-        self.obj_map = [ [ None for _ in row ] for row in char_map]
+        self.obj_map = [ [ Layers() for _ in row ] for row in char_map]
         for y,line in enumerate(char_map):
             for x,char in enumerate(line):
                 self.map[y][x] = charkey_func(char,x,y).copy()
@@ -62,12 +71,8 @@ class Map:
                        ('l',-1,0),
                        ('r',+1,0), )
         abs_coords = ( (char,x+dx,y+dy) for char,dx,dy in adj_coords if self.is_in_map(x+dx,y+dy) ) 
-        return ''.join( char for char,x_,y_ in abs_coords if obj.draw_contiguously_with(self.get_layers_at(x_,y_)) ) 
+        return ''.join( char for char,x_,y_ in abs_coords if obj.draw_contiguously_with(self.map[y_][x_]) ) 
 
-    def get_layers_at(self,x,y):
-        assert self.is_in_map(x,y)
-        return self.map[y][x]
-    
     def is_in_map(self,x,y):
         return 0 <= x < len(self.map[0]) and 0 <= y < len(self.map)
         
@@ -77,32 +82,30 @@ class Map:
     def create_at(self,x,y,obj):
         obj.x = x
         obj.y = y
-        self.obj_map[y][x] = obj
+        self.obj_map[y][x].set_obj(obj)
         
     def remove_obj(self,obj):
-        self.obj_map[obj.y][obj.x]=None
+        assert self.obj_map[obj.y][obj.x].lst == (obj,)
+        self.obj_map[obj.y][obj.x].remove_all()
         obj.x = None
         
     def convert_obj(self,old_obj,new_obj):
-        self.obj_map[old_obj.y][old_obj.x] = new_obj
+        print "xxx: " + str(self.obj_map[old_obj.y][old_obj.x].lst)
+        assert self.obj_map[old_obj.y][old_obj.x].lst == (old_obj,)
+        self.obj_map[old_obj.y][old_obj.x].remove_all()
+        self.obj_map[old_obj.y][old_obj.x].set_obj(new_obj)
         new_obj.x, new_obj.y = old_obj.x, old_obj.y
         old_obj.x = None
         
-    def move_to(self,x,y,obj):
-        assert self.obj_map[obj.y][obj.x] == obj
-        self.obj_map[obj.y][obj.x] = None 
-        obj.x, obj.y = x, y
-        self.obj_map[y][x] = obj
-        # TODO: Make list, not just single obj
+    def move_to(self,new_x,new_y,obj):
+        assert self.obj_map[obj.y][obj.x].lst == (obj,)
+        self.obj_map[obj.y][obj.x].remove_all()
+        self.obj_map[new_y][new_x].set_obj(obj)
+        obj.x, obj.y = new_x, new_y
 
-    def get_obj_layers_at(self,x,y):
-        lst = (self.obj_map[y][x],) if self.obj_map[y][x] else ()
-        return Layers(*lst)
-        
     def get_mapsquare_at(self,x,y):
-        return MapSquare(self.get_layers_at(x,y),
-                         self.get_obj_layers_at(x,y),
-                         self.get_context_at(x,y))
+        assert self.is_in_map(x,y)
+        return MapSquare(self.map[y][x],self.obj_map[y][x],self.get_context_at(x,y))
 
     def get_mapsquares_by_rows(self):
         return ( ( self.get_mapsquare_at(x,y) for x,_ in enumerate(line) ) for y,line in enumerate(self.map) )
