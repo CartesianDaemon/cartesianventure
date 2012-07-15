@@ -191,7 +191,10 @@ class Frontend:
                 # self.last_mouse_time = 0
                 # self.last_mouse_obj = tile_obj or tile_base
     
-    def draw_menu(self,x,y):
+    def draw_menu(self,mouse_x,mouse_y):
+        x,y = self.get_screen_from_tile_coords( * self.get_tile_from_screen_coords((mouse_x,mouse_y)) )
+        x += self.get_default_tile_size()[0]/2
+        y += self.get_default_tile_size()[1]/2
         verb_width , verb_height = 120 , 20
         undo_width, undo_height = 180, verb_height
         verb_vpadding = 10
