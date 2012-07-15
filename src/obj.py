@@ -48,13 +48,17 @@ class Obj():
         self.short_desc=short_desc
         self.examine_text=examine_text
         self.graphic_source=graphic_source
-        for prop,val in prop_defaults.blank_obj.iteritems():
-            self.__dict__[prop]=val
+        self.update(**prop_defaults.blank_obj)
         self.created_by_event = []
         self.used_in_events_past = []
         self.used_in_events_future = []
         self.destroyed_by_event = []
         self.context = ''
+        
+    def update(self,**kwargs):
+        for prop,val in kwargs.iteritems():
+            self.__dict__[prop]=val
+        return self
         
     def __hash__(self):
         return hash(self.key)
@@ -142,11 +146,6 @@ class Obj():
             
     def draw_contiguously_with(self,other_layers):
         return any( self.key == other_obj.key for other_obj in other_layers.lst)
-        
-def make_objs(**kwargs):
-    # return { k:Obj(k,*args) for k,args in kwargs.iteritems()}
-    d = {}
-    for k, obj in kwargs.iteritems():
-        obj.key = k
-        d[k] = obj
-    return Bunch(d)
+
+def make_objs(default_props={}, **kwargs):
+    return Bunch({ key: obj.update(key=key,**kwargs) for key, obj in kwargs.iteritems() })

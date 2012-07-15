@@ -15,6 +15,12 @@ def merge(*args):
         assert k not in ret
         ret[k] = v
     return ret
+    
+def merge_obj_ip(obj,**kwargs):
+    ret = obj
+    for k,v in kwargs.iteritems():
+        ret.__dict__[k] = v
+    return ret
 
 # class Maybe:
 #     def __init__(self,value=None):
