@@ -31,16 +31,25 @@ class Verb:
             elif idx < self.arity():
                 sentence += "..."
         return sentence
-            
+
+prop_defaults = Bunch(
+    blank_obj =  Bunch(moveable=False, pickable=False, hoverable=True , can_support=False, passable=False ),
+    pickable =   Bunch(moveable=True , pickable=True , hoverable=True , can_support=False, passable=True  ),
+    moveable =   Bunch(moveable=True , pickable=False, hoverable=True , can_support=False, passable=False ),
+    stackable =  Bunch(moveable=True , pickable=False, hoverable=True , can_support=False, passable=False ),
+    fixed =      Bunch(moveable=False, pickable=False, hoverable=True , can_support=False, passable=False ),
+    floor =      Bunch(moveable=False, pickable=False, hoverable=False, can_support=True , passable=False ),
+    wall =       Bunch(moveable=False, pickable=False, hoverable=False, can_support=False, passable=False ),
+)
+
 class Obj():
     def __init__(self,name,short_desc="",examine_text="",graphic_source=None):
         self.name=name
         self.short_desc=short_desc
         self.examine_text=examine_text
         self.graphic_source=graphic_source
-        self.hoverable = True
-        self.can_support = False
-        self.pickable = False
+        for prop,val in prop_defaults.blank_obj.iteritems():
+            self.__dict__[prop]=val
         self.created_by_event = []
         self.used_in_events_past = []
         self.used_in_events_future = []

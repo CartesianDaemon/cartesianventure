@@ -40,7 +40,7 @@ fixed_objs = make_objs(
     well            = Obj("well", graphic_source=GraphicSource("data/img_test/well.png",0,0,128,128,colorkey='topleft')),
 )
 
-for obj in floor_objs.values():
+for obj in fixed_objs.values():
     pass
 
 init_map_str = """\
