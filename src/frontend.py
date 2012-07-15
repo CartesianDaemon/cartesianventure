@@ -21,6 +21,8 @@ log_file = open('eventlog.bin', 'wb') if 'logevents' in sys.argv else None
 class Frontend:
     def __init__(self,default_room):
         pygame.init()
+        
+        self.draw_menu_around_tile_not_mouse = True
 
         self.menu_pos = None
         self.last_mouse_time = pygame.time.get_ticks()
@@ -205,6 +207,10 @@ class Frontend:
             desc_obj = render_text(short_desc, **render_desc_defaults )
             desc_obj.blit_to( self.screen, (x-20,y-40) )
             
+        verb_width , verb_height = 120 , 20
+        undo_width, undo_height = 180, verb_height
+        verb_vstride = verb_height+verb_vpadding
+ 
         self.menu_hit_rects = []
         verb_list = self.menu_obj.get_verb_sentences_initcap()
         for idx,(verb,sentence) in enumerate(verb_list):
