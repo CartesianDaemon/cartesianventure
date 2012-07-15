@@ -15,15 +15,15 @@ class GraphicSource:
         self.reps = reps
         self.colorkey = colorkey
 
-    def load(self,tile_w,tile_h):
+    def load(self,size):
         self.surfaces = []
         if not self.filename:
             surface = pygame.surface()
             self.surfaces.append(surface)
         file_surface = pygame.image.load(self.filename)
         # w,h for tile image including possible overlay over tile to North
-        w = tile_w
-        h = tile_h * self.first_subrect.h / self.first_subrect.w
+        w = size.x
+        h = size.y * self.first_subrect.h / self.first_subrect.w
         # stride = self.first_subrect.x + self.first_subrect.w
         stride = 2 * self.first_subrect.w
         for rep in range(self.reps):
@@ -40,7 +40,7 @@ class GraphicSource:
                 surface.set_colorkey(colorkey, RLEACCEL)
             surface = surface.convert()
             self.surfaces.append(surface)
-        self.cur_w,self.cur_h = self.surfaces[0].get_size()
+        self.cur_size = self.surfaces[0].get_size()
         self.transparent_surfaces = None
         
     def _get_transparent_surfaces():
@@ -48,13 +48,13 @@ class GraphicSource:
             self._transparent_surfaces = [ orig_surface.copy() for orig_surface in self.surfaces]
             for surface in self._transparent_surfaces: surface.set_alpha(256,RLEACCEL)
         return self._transparent_surfaces
-            
-    def get_surface(self,pos,w,h,context='',is_transparent=False):
-        if not self.surfaces or self.cur_w != w or self.cur_h != h:
-            self.load(w,h)
+
+    def get_surface(self,pos,size,context='',is_transparent=False):
+        if not self.surfaces or self.cur_size != size:
+            self.load(size)
         surfaces = self.surfaces if not is_transparent else self._get_transparent_surfaces()
         return surfaces[self._get_surface_idx(pos)]
-            
+
     def _get_surface_idx(self,pos):
         if self.reps<=1:
             return 0
@@ -69,6 +69,6 @@ class ContextualGraphicSource:
     def load(self,*args):
         for gs in self.tiles: gs.load(*args)
         
-    def get_surface(self,pos,w,h,context,is_transparent):
+    def get_surface(self,pos,size,context,is_transparent):
         tile = self.tiles.get(context,self.tiles['x'])
-        return tile.get_surface(pos,w,h,is_transparent)
+        return tile.get_surface(pos,size,is_transparent)

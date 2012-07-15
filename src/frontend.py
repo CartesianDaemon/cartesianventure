@@ -89,21 +89,17 @@ class Frontend:
     def get_tile_from_screen_coords(self,pos):
         return ( pos - self.get_screen_padding_lt() ) / self.get_default_tile_size()
 
-    def get_screen_from_tile_coords(self,x,y):
-        # off_x, off_y = self.get_screen_padding_lt()
-        # tile_w, tile_h = self.get_default_tile_size()
-        # return (off_x+x*tile_w, off_y+y*tile_h )
-        return self.get_screen_padding_lt() + (x,y) * self.get_default_tile_size()
+    def get_screen_from_tile_coords(self,pos):
+        return self.get_screen_padding_lt() + pos * self.get_default_tile_size()
 
     def draw_all(self):
         self.screen.blit(self.background, (0, 0))
-        tile_width, tile_height = self.get_default_tile_size()
         for x, y, map_square in enumerate_2d( self.backend.get_mapsquares_by_rows() ):
-            tile_screen_x, tile_screen_y = self.get_screen_from_tile_coords(x,y)
+            tile_screen_pos = self.get_screen_from_tile_coords((x,y))
             for obj in map_square.get_combined_lst():
                 assert obj is not None
-                tile_surface = obj.get_surface(tile_width,tile_height)
-                blit_pos = tile_screen_x, tile_screen_y + tile_height-tile_surface.get_height()
+                tile_surface = obj.get_surface( self.get_default_tile_size() )
+                blit_pos = tile_screen_pos + ( 0, self.get_default_tile_size().y-tile_surface.get_height() )
                 self.screen.blit( tile_surface, blit_pos )
             
     def handle_and_draw_menu(self):
@@ -195,7 +191,7 @@ class Frontend:
                 # self.last_mouse_obj = tile_obj or tile_base
     
     def draw_menu(self,mouse_x,mouse_y):
-        tile_pos = self.get_screen_from_tile_coords( * self.get_tile_from_screen_coords((mouse_x,mouse_y)) )
+        tile_pos = self.get_screen_from_tile_coords( self.get_tile_from_screen_coords((mouse_x,mouse_y)) )
         if self.draw_menu_around_tile_not_mouse:
             x,y = tile_pos + self.get_default_tile_size() / 2
         else:

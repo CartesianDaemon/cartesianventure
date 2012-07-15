@@ -85,9 +85,9 @@ class Obj:
     def get_context(self):
         return self.context
     
-    def get_surface(self,tile_width,tile_height):
+    def get_surface(self,tile_size):
         is_transparent = self.transparent or self.transparent=='atbottomofscreen' and pos[1]==7 and 0 < pos[0] < 14
-        return self.graphic_source.get_surface( (self.x,self.y), tile_width,tile_height, self.get_context(), is_transparent)
+        return self.graphic_source.get_surface( (self.x,self.y), tile_size, self.get_context(), is_transparent)
         
     def is_hoverable(self):
         return self.hoverable;
