@@ -39,14 +39,13 @@ class Map:
     
     def make_map_from_key(self,init_map_str,charkey_func):
         char_map = init_map_str.splitlines()
-        self.map = [[self._charkey(char,charkey_func,x,y) for x,char in enumerate(line)] for y,line in enumerate(char_map)]
-
-    def _charkey(self,char,charkey_func,x,y):
-        obj_layers = charkey_func(char,x,y).copy()
-        for obj in obj_layers.get_lst():
-            obj.x = x
-            obj.y = y
-        return obj_layers
+        self.map = [ [ None for _ in row ] for row in char_map]
+        for y,line in enumerate(char_map):
+            for x,char in enumerate(line):
+                self.map[y][x] = charkey_func(char,x,y).copy()
+                for obj in self.map[y][x].get_lst():
+                    obj.x = x
+                    obj.y = y
 
     def get_contexts(self):
         if self.contexts is None:
@@ -60,15 +59,12 @@ class Map:
                        ('b',0,+1),
                        ('l',-1,0),
                        ('r',+1,0), )
-        adj_layers = ( (char,self.get_layers_at_or_none(x+dx,y+dy)) for char,dx,dy in adj_coords)
-        return ''.join( char for char,layers in adj_layers if obj.draw_contiguously_with(layers) ) 
+        abs_coords = ( (char,x+dx,y+dy) for char,dx,dy in adj_coords if self.is_in_map(x+dx,y+dy) ) 
+        return ''.join( char for char,x_,y_ in abs_coords if obj.draw_contiguously_with(self.get_layers_at(x_,y_)) ) 
 
     def get_layers_at(self,x,y):
         assert self.is_in_map(x,y)
         return self.map[y][x]
-
-    def get_layers_at_or_none(self,x,y):
-        return self.map[y][x] if self.is_in_map(x,y) else Layers()
     
     def is_in_map(self,x,y):
         return 0 <= x < len(self.map[0]) and 0 <= y < len(self.map)
@@ -78,11 +74,16 @@ class Map:
         
     def get_coords_by_rows(self):
         return ( (x,y) for y,line in enumerate(self.map) for x,_ in enumerate(line)  )
-        
-class ObjMap:
-    def __init__(self,obj_map):
-        self.obj_map = [ [ None for _ in row ] for row in obj_map]
-        
+            
+class CombinedMap:
+    def __init__(self):
+        self.map = Map()
+        self.obj_map = None
+
+    def make_map_from_key(self,init_map_str,charkey_func):
+        self.map.make_map_from_key(init_map_str,charkey_func)
+        self.obj_map = [ [ None for _ in row ] for row in init_map_str.splitlines()]
+
     def create_at(self,x,y,obj):
         obj.x = x
         obj.y = y
@@ -103,14 +104,7 @@ class ObjMap:
         obj.x, obj.y = x, y
         self.obj_map[y][x] = obj
         # TODO: Make list, not just single obj
-    
-    def get_layers_at(self,x,y):
-        return Layers(*self.get_lst_at(x,y))
-    
-    def get_obj_at(self,x,y):
-        return self.obj_map[y][x]
-    
-    def get_lst_at(self,x,y):
-        return (self.obj_map[y][x],) if self.obj_map[y][x] else ()
-    
-                       
+
+    def get_obj_layers_at(self,x,y):
+        lst = (self.obj_map[y][x],) if self.obj_map[y][x] else ()
+        return Layers(*lst)

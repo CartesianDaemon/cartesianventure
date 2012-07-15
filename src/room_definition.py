@@ -1,5 +1,5 @@
 from src.room import Room, prop_defaults
 from src.obj import Obj
-from src.map import Layers, ObjMap
+from src.map import Layers
 from src.graphic_source import GraphicSource, ContextualGraphicSource
 from src.helpers import *

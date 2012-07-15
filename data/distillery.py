@@ -3,7 +3,7 @@
 # Include default class and function definitions included in
 # room definition file. Typically including:
 # 
-#  Room, prop_defaults, Obj, Layers, ObjMap, GraphicSource, ContextualGraphicSource, helpers.*
+#  Room, prop_defaults, Obj, Layers, GraphicSource, ContextualGraphicSource, helpers.*
 #
 # It is fine to include extras, eg. modules which define various default sorts of object
 # or other standard modules with useful functions
