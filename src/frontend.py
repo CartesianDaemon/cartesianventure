@@ -87,14 +87,13 @@ class Frontend:
         return Pos(64,64)
         
     def get_tile_from_screen_coords(self,pos):
-        x,y = pos - self.get_screen_padding_lt()
-        tile_w, tile_h = self.get_default_tile_size()
-        return (x/tile_w,y/tile_h )
+        return ( pos - self.get_screen_padding_lt() ) / self.get_default_tile_size()
 
     def get_screen_from_tile_coords(self,x,y):
-        off_x, off_y = self.get_screen_padding_lt()
-        tile_w, tile_h = self.get_default_tile_size()
-        return (off_x+x*tile_w, off_y+y*tile_h )
+        # off_x, off_y = self.get_screen_padding_lt()
+        # tile_w, tile_h = self.get_default_tile_size()
+        # return (off_x+x*tile_w, off_y+y*tile_h )
+        return self.get_screen_padding_lt() + (x,y) * self.get_default_tile_size()
 
     def draw_all(self):
         self.screen.blit(self.background, (0, 0))
