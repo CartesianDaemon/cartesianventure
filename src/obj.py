@@ -60,7 +60,10 @@ class Obj():
         
     def __eq__(self, other):
         return self is other or self.key == other
-        
+    
+    def get_context(self):
+        return self.context
+    
     def get_surface(self,*args):
         return self.graphic_source.get_surface(*args)
         
@@ -139,5 +142,5 @@ class Obj():
         else:
             return self.destroyed_by_event
             
-    def draw_contiguously_with(self,other_layers):
-        return any( self.key == other_obj.key for other_obj in other_layers.lst)
+    def draw_contiguously_with(self,other_lst):
+        return any( self.key == other_obj.key for other_obj in other_lst)

@@ -70,6 +70,8 @@ class TestHelpers(unittest.TestCase):
     def test_capitalize_first(self):
         self.assertEquals(capitalize_first("i have an iPad"),"I have an iPad")        
 
+    def test_enumerate_2d(self):
+        self.assertEquals(tuple(enumerate_2d(["ab","pq"])),( (0,0,'a'),(1,0,'b'),(0,1,'p'),(1,1,'q'), ))
 #     def test_maybe(self):
 #         self.assertEquals(Maybe("abc").capitalize(),"Abc")
 #         self.assertIsNone(Maybe(None).foo)
@@ -91,7 +93,7 @@ class TestBackend(unittest.TestCase):
         return self.backend_distillery.get_obj_at(x,y)
     
     def test_contexts(self):
-        self.assertEqual(self.obj_at(0,2).context,'br' )
+        self.assertEqual(self.obj_at(0,2).get_context(),'br' )
     
     def test_verblist(self):
         crucible = self.defs.crucible

@@ -2,10 +2,9 @@
 from src.helpers import *
 
 class MapSquare:
-    def __init__(self,base_layers,obj_layers,base_context):
+    def __init__(self,base_layers,obj_layers):
         self.base_layers = base_layers
         self.obj_layers = obj_layers
-        self.base_layers.get_obj().context = base_context
     
     def get_combined_mainobj(self):
         return self.obj_layers.get_obj() or self.base_layers.get_obj()
@@ -45,69 +44,63 @@ class Layers:
 class Map:
     def __init__(self):
         self.obj_map = None
-        self.contexts = None
     
     def make_map_from_key(self,init_map_str,charkey_func):
         char_map = init_map_str.splitlines()
-        self.map =     [ [ None for _ in row ] for row in char_map]
-        self.obj_map = [ [ Layers() for _ in row ] for row in char_map]
-        for y,line in enumerate(char_map):
-            for x,char in enumerate(line):
-                self.map[y][x] = charkey_func(char,x,y).copy()
-                for obj in self.map[y][x].get_lst():
-                    obj.x = x
-                    obj.y = y
+        self.map_squares = [ [ None for _ in row ] for row in char_map]
+        for x,y,char in enumerate_2d(char_map):
+            self.map_squares[y][x] = MapSquare( charkey_func(char,x,y).copy(), Layers() )
+            for obj in self.map_squares[y][x].get_combined_lst():
+                obj.x = x
+                obj.y = y
+        self.generate_contexts()
 
-    def get_contexts(self):
-        if self.contexts is None:
-            self.contexts = [ [ get_context_at(x,y,layers.get_obj()) for x,layers in enumerate(line) ]
-                                                                     for y,line in enumerate(self.map) ]
-        return self.contexts
-
-    def get_context_at(self,x,y,obj = DefaultArg):
-        if obj == DefaultArg: obj = self.map[y][x].get_obj()
-        adj_coords = ( ('t',0,-1),
-                       ('b',0,+1),
-                       ('l',-1,0),
-                       ('r',+1,0), )
-        abs_coords = ( (char,x+dx,y+dy) for char,dx,dy in adj_coords if self.is_in_map(x+dx,y+dy) ) 
-        return ''.join( char for char,x_,y_ in abs_coords if obj.draw_contiguously_with(self.map[y_][x_]) ) 
+    def generate_contexts(self):
+        for x,y,map_square in enumerate_2d(self.map_squares):
+            adj_coords = ( ('t',0,-1),
+                           ('b',0,+1),
+                           ('l',-1,0),
+                           ('r',+1,0), )
+            abs_coords = tuple( (char,x+dx,y+dy) for char,dx,dy in adj_coords if self.is_in_map(x+dx,y+dy) ) 
+            for obj in map_square.get_combined_lst():
+                valid_chars = ( char for char,x_,y_ in abs_coords
+                                     if obj.draw_contiguously_with( self.map_squares[y_][x_].get_combined_lst() ) )
+                obj.context = ''.join( valid_chars )
 
     def is_in_map(self,x,y):
-        return 0 <= x < len(self.map[0]) and 0 <= y < len(self.map)
+        return 0 <= x < self.map_size()[0] and 0 <= y < self.map_size()[1]
         
     def map_size(self):
-        return (len(self.map[0]),len(self.map))
+        return (len(self.map_squares[0]),len(self.map_squares))
         
     def create_at(self,x,y,obj):
         obj.x = x
         obj.y = y
-        self.obj_map[y][x].set_obj(obj)
+        self.map_squares[y][x].obj_layers.set_obj(obj)
         
     def remove_obj(self,obj):
-        assert self.obj_map[obj.y][obj.x].lst == (obj,)
-        self.obj_map[obj.y][obj.x].remove_all()
+        assert self.map_squares[obj.y][obj.x].obj_layers.lst == (obj,)
+        self.map_squares[obj.y][obj.x].obj_layers.remove_all()
         obj.x = None
         
     def convert_obj(self,old_obj,new_obj):
-        print "xxx: " + str(self.obj_map[old_obj.y][old_obj.x].lst)
-        assert self.obj_map[old_obj.y][old_obj.x].lst == (old_obj,)
-        self.obj_map[old_obj.y][old_obj.x].remove_all()
-        self.obj_map[old_obj.y][old_obj.x].set_obj(new_obj)
+        assert self.map_squares[old_obj.y][old_obj.x].obj_layers.lst == (old_obj,)
+        self.map_squares[old_obj.y][old_obj.x].obj_layers.remove_all()
+        self.map_squares[old_obj.y][old_obj.x].obj_layers.set_obj(new_obj)
         new_obj.x, new_obj.y = old_obj.x, old_obj.y
         old_obj.x = None
         
     def move_to(self,new_x,new_y,obj):
-        assert self.obj_map[obj.y][obj.x].lst == (obj,)
-        self.obj_map[obj.y][obj.x].remove_all()
-        self.obj_map[new_y][new_x].set_obj(obj)
+        assert self.map_squares[obj.y][obj.x].obj_layers.lst == (obj,)
+        self.map_squares[obj.y][obj.x].obj_layers.remove_all()
+        self.map_squares[new_y][new_x].obj_layers.set_obj(obj)
         obj.x, obj.y = new_x, new_y
 
     def get_mapsquare_at(self,x,y):
         assert self.is_in_map(x,y)
-        return MapSquare(self.map[y][x],self.obj_map[y][x],self.get_context_at(x,y))
+        return self.map_squares[y][x]
 
     def get_mapsquares_by_rows(self):
-        return ( ( self.get_mapsquare_at(x,y) for x,_ in enumerate(line) ) for y,line in enumerate(self.map) )
+        return self.map_squares
 
         

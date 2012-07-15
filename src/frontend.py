@@ -99,7 +99,7 @@ class Frontend:
             tile_screen_x, tile_screen_y = self.get_screen_from_tile_coords(x,y)
             for obj in map_square.get_combined_lst():
                 assert obj is not None
-                tile_surface = obj.get_surface(x,y,tile_width,tile_height,obj.context)
+                tile_surface = obj.get_surface(x,y,tile_width,tile_height,obj.get_context())
                 blit_pos = tile_screen_x, tile_screen_y + tile_height-tile_surface.get_height()
                 self.screen.blit( tile_surface, blit_pos )
             
