@@ -14,7 +14,7 @@ class MapSquare:
 
 class Layers:
     def __init__(self,*args):
-        self.lst = args
+        self.lst = list(args)
         self.obj = self.lst[-1] if len(self.lst)>=1 else None
         
     def get_lst(self):
@@ -25,11 +25,11 @@ class Layers:
         
     def set_obj(self, new_obj):
         assert len(self.lst) == 0
-        self.lst = (new_obj,)
+        self.lst.append(new_obj)
         self.obj = self.lst[-1]
         
     def remove_all(self):
-        self.lst = ()
+        self.lst = []
         self.obj = None
         
     def add_overlays(*args):
@@ -37,7 +37,7 @@ class Layers:
         
     def copy(self):
         cpy = Layers()
-        cpy.lst = tuple(obj.copy() for obj in self.lst)
+        cpy.lst = [obj.copy() for obj in self.lst]
         cpy.obj = cpy.lst[self.lst.index(self.obj)]
         return cpy
 
@@ -79,19 +79,19 @@ class Map:
         self.map_squares[y][x].obj_layers.set_obj(obj)
         
     def remove_obj(self,obj):
-        assert self.map_squares[obj.y][obj.x].obj_layers.lst == (obj,)
+        assert self.map_squares[obj.y][obj.x].obj_layers.lst == [obj]
         self.map_squares[obj.y][obj.x].obj_layers.remove_all()
         obj.x = None
         
     def convert_obj(self,old_obj,new_obj):
-        assert self.map_squares[old_obj.y][old_obj.x].obj_layers.lst == (old_obj,)
+        assert self.map_squares[old_obj.y][old_obj.x].obj_layers.lst == [old_obj]
         self.map_squares[old_obj.y][old_obj.x].obj_layers.remove_all()
         self.map_squares[old_obj.y][old_obj.x].obj_layers.set_obj(new_obj)
         new_obj.x, new_obj.y = old_obj.x, old_obj.y
         old_obj.x = None
         
     def move_to(self,new_x,new_y,obj):
-        assert self.map_squares[obj.y][obj.x].obj_layers.lst == (obj,)
+        assert self.map_squares[obj.y][obj.x].obj_layers.lst == [obj]
         self.map_squares[obj.y][obj.x].obj_layers.remove_all()
         self.map_squares[new_y][new_x].obj_layers.set_obj(obj)
         obj.x, obj.y = new_x, new_y
