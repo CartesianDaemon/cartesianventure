@@ -8,16 +8,22 @@ class Event:
 class Rule:
     def __init__(self,verb,*arg_pairs,**kwargs):
         self.verb = verb
-        self.in_objs = tuple(pair[0] for pair in arg_pairs)
-        self.out_objs = tuple( (pair[-1] if len(pair)>=2 else '_pass') for pair in arg_pairs)
+        self.in_obj_keys = tuple(pair[0].key for pair in arg_pairs)
+        self.out_obj_keys = tuple( (pair[1].key if not isinstance(pair[1],str) else pair[1]) for pair in arg_pairs)
         self.msg = kwargs.get('msg') or ""
 
     def get_msg(self):
         return self.msg
     
-class Rules(Bunch):
+class Rules():
+    def __init__(self):
+        self._rules = dict_dict()
+        
+    def update(self,other):
+        self._rules.store.update(other._rules.store)
+        
     def get_rule(self,verb,*arg_objs):
-        return self.get(verb) and self[verb].get(tuple(obj.key for obj in arg_objs))
+        return self._rules[verb].get( tuple(obj.key for obj in arg_objs) )
     
     def add_reflexive_rule(self,verb,arg_pair1,arg_pair2):
         self.add_rule(verb,arg_pair1,arg_pair2)
@@ -25,5 +31,4 @@ class Rules(Bunch):
     
     def add_rule(self,verb,*args,**kwargs):
         rule = Rule(verb,*args,**kwargs)
-        if not self.get(verb): self[verb] = {}
-        self[verb][rule.in_objs] = rule
+        self._rules[ verb ][ rule.in_obj_keys ] = rule

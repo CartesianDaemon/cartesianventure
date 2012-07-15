@@ -8,13 +8,12 @@ from pygame.locals import *
 from helpers import *
 
 class GraphicSource:
-    def __init__(self,filename,x=None,y=None,w=None,h=None,reps=1,colorkey=None,transparent=False):
+    def __init__(self,filename,x=None,y=None,w=None,h=None,reps=1,colorkey=None):
         self.filename = filename
         self.surfaces = ()
         self.first_subrect = NotNone(x) and Rect(x,y,w,h)
         self.reps = reps
         self.colorkey = colorkey
-        self.transparent = transparent
 
     def load(self,tile_w,tile_h):
         self.surfaces = []
@@ -42,25 +41,26 @@ class GraphicSource:
             surface = surface.convert()
             self.surfaces.append(surface)
         self.cur_w,self.cur_h = self.surfaces[0].get_size()
-        if self.transparent:
-            self.transparent_surfaces = []
-            for orig_surface in self.surfaces:
-                surface = orig_surface.copy()
-                surface.set_alpha(256, RLEACCEL)
-                self.transparent_surfaces.append(surface)
+        self.transparent_surfaces = None
         
-    def get_surface(self,xidx,yidx,w,h,context=''):
+    def _get_transparent_surfaces():
+        if self._transparent_surfaces is None:
+            self._transparent_surfaces = [ orig_surface.copy() for orig_surface in self.surfaces]
+            for surface in self._transparent_surfaces: surface.set_alpha(256,RLEACCEL)
+        return self._transparent_surfaces
+            
+    def get_surface(self,pos,w,h,context='',is_transparent=False):
         if not self.surfaces or self.cur_w != w or self.cur_h != h:
             self.load(w,h)
-        is_transparent = (self.transparent==True) or (self.transparent=='atbottomofscreen' and yidx==7)
-        surfaces = self.surfaces if not is_transparent else self.transparent_surfaces
-        ret = self.get_random_surface(surfaces,xidx,yidx) if self.reps>1 else surfaces[0]
-        return ret
+        surfaces = self.surfaces if not is_transparent else self._get_transparent_surfaces()
+        return surfaces[self._get_surface_idx(pos)]
             
-    def get_random_surface(self,surfaces,xidx,yidx):
-        random.seed(xidx+yidx)
-        idx = random.randrange(self.reps)
-        return surfaces[idx]
+    def _get_surface_idx(self,pos):
+        if self.reps<=1:
+            return 0
+        else:
+            random.seed(pos[0]+pos[1])
+            return random.randrange(self.reps)
 
 class ContextualGraphicSource:
     def __init__(self,**kwargs):

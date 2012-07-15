@@ -1,5 +1,6 @@
 # Internal modules
 from src.helpers import *
+from src.obj import make_copy
 
 class MapSquare:
     def __init__(self,base_layers,obj_layers):
@@ -13,8 +14,10 @@ class MapSquare:
         return self.base_layers.get_lst() + self.obj_layers.get_lst()
 
 class Layers:
-    def __init__(self,*args):
-        self.lst = list(args)
+    def __init__(self,*init_objs):
+        # Copy of initial layers is necessary because we assign
+        # coords to object, and object may or may not exist elsewhere
+        self.lst = [ make_copy(obj) for obj in init_objs]
         self.obj = self.lst[-1] if len(self.lst)>=1 else None
         
     def get_lst(self):
@@ -35,12 +38,6 @@ class Layers:
     def add_overlays(*args):
         lst.extend(args)
         
-    def copy(self):
-        cpy = Layers()
-        cpy.lst = [obj.copy() for obj in self.lst]
-        cpy.obj = cpy.lst[self.lst.index(self.obj)]
-        return cpy
-
 class Map:
     def __init__(self):
         self.obj_map = None
@@ -49,7 +46,8 @@ class Map:
         char_map = init_map_str.splitlines()
         self.map_squares = [ [ None for _ in row ] for row in char_map]
         for x,y,char in enumerate_2d(char_map):
-            self.map_squares[y][x] = MapSquare( charkey_func(char,x,y).copy(), Layers() )
+            base_layers = Layers(*charkey_func(char,x,y))
+            self.map_squares[y][x] = MapSquare( base_layers, Layers() )
             for obj in self.map_squares[y][x].get_combined_lst():
                 obj.x = x
                 obj.y = y

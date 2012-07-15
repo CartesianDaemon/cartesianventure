@@ -7,6 +7,15 @@ class Bunch(dict):
     def __setattr__(self, attr, val):
         self[attr] = val
 
+class dict_dict:
+    def __init__(self):
+        self.store = {}
+
+    def __getitem__(self, key):
+        if not key in self.store:
+            self.store[key] = {}
+        return self.store[key]
+
 class Struct:
     pass
     

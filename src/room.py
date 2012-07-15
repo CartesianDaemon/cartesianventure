@@ -15,12 +15,15 @@ prop_defaults = Bunch(
 
 class Room:
     def __init__(self):
-        self.rules = Rules()
+        self._rules = Rules()
         self.map = Map()
         self.defs = Bunch()
+    
+    def get_rules(self):
+        return self._rules
 
     def add_rule(self,*args,**kwargs):
-        self.rules.add_rule(*args,**kwargs)
+        self._rules.add_rule(*args,**kwargs)
 
     def create_obj_at(self,x,y,obj):
         self.map.create_at(x,y,obj)
@@ -28,6 +31,6 @@ class Room:
     def make_map_from_key(self,init_map_str,charkey_func):
         self.map.make_map_from_key(init_map_str,charkey_func)
         
-    def make_objs(self,default_props={}, **kwargs):
+    def add_obj_templates(self,default_props={}, **kwargs):
         self.defs.update( { key: obj.update(key=key,**default_props) for key, obj in kwargs.iteritems() } )
 

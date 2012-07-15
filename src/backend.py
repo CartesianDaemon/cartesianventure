@@ -11,7 +11,7 @@ class Backend:
     def load(self,filename):
         # TODO: need copy?
         self.curr_room = room_data.load_room(filename)
-        self.rules.update(self.curr_room.rules)
+        self.rules.update(self.curr_room.get_rules())
     
     def do(self,verb,*arg_objs):
         print (verb,)+tuple(obj.name for obj in arg_objs)
@@ -41,14 +41,14 @@ class Backend:
         print "REDO"
 
     def _do_rule(self,rule,arg_objs):
-        new_objs = rule.out_objs
+        new_obj_keys = rule.out_obj_keys
         event = Event()
         event.verb = rule.verb
         event.old_objs = []
         event.new_objs = []
         event.other_prereqs = []
         event.sentence = arg_objs[0].get_verb_sentence_ncase(rule.verb,*arg_objs[1:])
-        for i,new_key in enumerate(new_objs):
+        for i,new_key in enumerate(new_obj_keys):
             assert i < len(arg_objs) # TODO: Create completely new objects, eg. wood shavings
             old_obj = arg_objs[i]
             if new_key == '_pass':

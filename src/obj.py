@@ -4,7 +4,10 @@ import copy
 
 # Internal modules
 from helpers import *
-    
+
+def make_copy(other):
+    return copy.copy(other)
+
 class Verb:
     def __init__(self,*args):
         self.verb_parts = args
@@ -33,46 +36,56 @@ class Verb:
         return sentence
 
 class Obj():
-    def __init__(self,name,short_desc="",examine_text="",graphic_source=None):
+    def __init__(self,name,short_desc="",examine_text="",graphic_source=None,transparent=False):
+        # Object descriptions
+        self.key='' # set later by add_obj_templates
         self.name=name
         self.short_desc=short_desc
         self.examine_text=examine_text
+        
+        # Object depiction
         self.graphic_source=graphic_source
+        self.transparent = transparent
+        self.context = ''
+        
+        # Object state
+        self.state = Struct()
+
+        # Object event history
         self.created_by_event = []
         self.used_in_events_past = []
         self.used_in_events_future = []
         self.destroyed_by_event = []
-        self.context = ''
-        # Assume properties need to be updated by make_obj
+        
+        # Object properties, assume need to be updated by make_obj
         self.moveable = None
         self.pickable = None
         self.hoverable = None
         self.can_support = None
         self.walkable = None
-        
+    
+    #TODO: delete this
+    def copy(self):
+        return make_copy(self)
+    
     def update(self,**kwargs):
         for prop,val in kwargs.iteritems():
             self.__dict__[prop]=val
         return self
-        
-    def __hash__(self):
-        return hash(self.key)
-        
-    def __eq__(self, other):
-        return self is other or self.key == other
+
+    def packed():
+        return (self.key,self.state)
     
     def get_context(self):
         return self.context
     
     def get_surface(self,tile_width,tile_height):
-        return self.graphic_source.get_surface(self.x,self.y,tile_width,tile_height,self.get_context())
+        is_transparent = self.transparent or self.transparent=='atbottomofscreen' and pos[1]==7 and 0 < pos[0] < 14
+        return self.graphic_source.get_surface( (self.x,self.y), tile_width,tile_height, self.get_context(), is_transparent)
         
     def is_hoverable(self):
         return self.hoverable;
         
-    def copy(self):
-        return copy.copy(self)
-    
     def is_pickable(self):
         # TODO: if we have a link to the data structure we're in, return True if in map, False if in obj_map
         return self.pickable
