@@ -11,15 +11,15 @@ from src.helpers import *
 #
 ##############################################################
 
-floor_objs = make_objs(
+floor_objs = make_objs( default_props=prop_defaults.floor,
    floorboards     = Obj("floor", graphic_source=GraphicSource("data/img_circ/VILFLR.bmp",  40, 41,40,40,reps=6)),
    crazypaving     = Obj("floor", graphic_source=GraphicSource("data/img_circ/GRS2ROC.bmp",120,161,40,40)),
    paving          = Obj("floor", graphic_source=GraphicSource("data/img_circ/PAVE.bmp",    40, 41,40,40,reps=4)),
 )
 
-for obj in floor_objs.values():
-    obj.hoverable = False
-    obj.can_support = True
+#for obj in floor_objs.values():
+#     obj.hoverable = False
+#     obj.can_support = True
 
 wall_objs = make_objs(
     wall            = Obj("wall",  graphic_source=ContextualGraphicSource(

@@ -148,4 +148,4 @@ class Obj():
         return any( self.key == other_obj.key for other_obj in other_layers.lst)
 
 def make_objs(default_props={}, **kwargs):
-    return Bunch({ key: obj.update(key=key,**kwargs) for key, obj in kwargs.iteritems() })
+    return Bunch({ key: obj.update(key=key).update(**kwargs).update(**default_props) for key, obj in kwargs.iteritems() })
