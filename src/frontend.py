@@ -105,7 +105,7 @@ class Frontend:
     def handle_and_draw_menu(self):
         if self.following_with_transitive_verb:
             if pygame.mouse.get_focused():
-                self.draw_transitive_menu(*pygame.mouse.get_pos())
+                self.draw_transitive_menu(pygame.mouse.get_pos())
             return
         hover_delay_ms, hover_off_delay_ms = 200, 200
         if ( self.menu_pos and self.last_mouse_in_menu_time + hover_off_delay_ms < pygame.time.get_ticks()
@@ -117,7 +117,7 @@ class Frontend:
             self.menu_obj = self.last_mouse_obj
             self.last_mouse_in_menu_time = pygame.time.get_ticks()
         if self.menu_pos:
-            self.draw_menu(*self.menu_pos)
+            self.draw_menu(self.menu_pos)
 
     def handle_event(self, event):
         if log_file: # and event.type in (MOUSEBUTTONDOWN,MOUSEBUTTONUP,MOUSEMOTION,QUIT,KEYDOWN):
@@ -190,15 +190,16 @@ class Frontend:
                 # self.last_mouse_time = 0
                 # self.last_mouse_obj = tile_obj or tile_base
     
-    def draw_menu(self,mouse_x,mouse_y):
-        tile_pos = self.get_screen_from_tile_coords( self.get_tile_from_screen_coords((mouse_x,mouse_y)) )
+    def draw_menu(self,mouse_pos):
+        tile_pos = self.get_screen_from_tile_coords( self.get_tile_from_screen_coords(mouse_pos) )
         if self.draw_menu_around_tile_not_mouse:
-            x,y = tile_pos + self.get_default_tile_size() / 2
+            x_y = x,y = tile_pos + self.get_default_tile_size() / 2
         else:
-            x,y = mouse_x,mouse_y
-        verb_vpadding = 10
+            x_y = x,y = mouse_pos
+        verb_spacing = verb_vpadding = 10
         verb_offset_x, verb_offset_y = +0,+20
-        
+        verb_menu_next_pos = x_y + (+0,+20)
+
         short_desc = self.menu_obj.get_short_desc()
         if short_desc:
             render_text(short_desc, **render_desc_defaults ).blit_to( self.screen, (x-20,y-40) )
@@ -206,23 +207,31 @@ class Frontend:
         verb_width , verb_height = 120 , 20
         undo_width, undo_height = 180, verb_height
         verb_vstride = verb_height+verb_vpadding
- 
+
         self.menu_hit_rect_structs = []
+        verb_menu_hit_rect_structs = []
         verb_list = self.menu_obj.get_verb_sentences_initcap()
         for idx,(verb,sentence) in enumerate(verb_list):
-            text = txtlib.Text((verb_width, verb_height), 'freesans')
-            text.text = sentence
-            text.update()
-            # render_obj = render_text(msg, **render_menu_defaults)
-            r_verb = text.area.get_rect().move(x+verb_offset_x, y+verb_offset_y+verb_vstride*idx)
-            if idx == self.menu_hit_idx:
-                r_verb = r_verb.move(2,1)
-            self.screen.blit(text.area, r_verb.topleft)
+            # text = txtlib.Text((verb_width, verb_height), 'freesans')
+            # text.text = sentence
+            # text.update()
+            # self.screen.blit(text.area, r_verb.topleft)
+            # r_verb = text.area.get_rect().move(x+verb_offset_x, y+verb_offset_y+verb_vstride*idx)
             hit_rect_struct = Struct()
+            selected = idx == self.menu_hit_idx
+            hit_rect_struct.render_obj = render_text(sentence, **render_menu_defaults)
             hit_rect_struct.verb = verb
-            hit_rect_struct.hit_rect = r_verb
+            verb_menu_hit_rect_structs.append(hit_rect_struct)
+
+        verb_menu_width = max( hit_rect_struct.render_obj.get_size().x for hit_rect_struct in verb_menu_hit_rect_structs )
+
+        for hit_rect_struct in verb_menu_hit_rect_structs:
+            hit_rect_struct.render_obj.extend_width_to(verb_menu_width)
+            hit_rect_struct.render_obj.blit_to( self.screen, verb_menu_next_pos )
+            hit_rect_struct.hit_rect = Rect( verb_menu_next_pos, hit_rect_struct.render_obj.get_size() )
+            verb_menu_next_pos.y += hit_rect_struct.hit_rect.h + verb_spacing
             self.menu_hit_rect_structs.append(hit_rect_struct)
-        
+
         if self.menu_obj.get_undoable_events():
             undo_event = self.menu_obj.get_undoable_events()[-1]
             text = txtlib.Text((undo_width, undo_height), 'freesans')
@@ -260,17 +269,17 @@ class Frontend:
         # Menu rects define area where mouse doesn't cause menu to disappear
         # Includes area of menu, slight border, area around mouse, and whole tile
         if self.draw_menu_around_tile_not_mouse:
-            r_courtesy_area = Rect(x-20,y-20,40,40)
+            r_courtesy_area = Rect( x_y + (-20,-20), (40,40) )
         else:
             r_courtesy_area = Rect(tile_pos,self.get_default_tile_size())
         r_whole_menu = unionall(hit_rect_struct.hit_rect for hit_rect_struct in self.menu_hit_rect_structs)
         self.menu_rects = ( r_courtesy_area, r_whole_menu.inflate(15,15) )
     
-    def draw_transitive_menu(self,x,y):
+    def draw_transitive_menu(self,pos):
         msg = self.menu_obj.get_verb_sentence_initcap(self.following_with_transitive_verb,
                                                       *self.transitive_verb_putative_objects)
         render_obj = render_text( msg, **render_menu_defaults )
-        render_obj.blit_to( self.screen,(x-30,y-30) )
+        render_obj.blit_to( self.screen, pos + (-30,-30) )
        
     def is_in_menu(self,pt):
         return any( ( rect.collidepoint(pt) for rect in self.menu_rects ) )
@@ -323,8 +332,8 @@ class render_text:
         self._extend_to_width = 0
 
     def get_size(self):
-        return ( max(self._extend_to_width, self._padding[0]*2 + self._text_surface.get_width()),
-                                            self._padding[1]*2 + self._text_surface.get_height() )
+        return Pos( max(self._extend_to_width, self._padding[0]*2 + self._text_surface.get_width()),
+                                               self._padding[1]*2 + self._text_surface.get_height() )
 
     def extend_width_to(self, new_width):
         self._extend_to_width = new_width
