@@ -87,8 +87,7 @@ class Frontend:
         return Pos(64,64)
         
     def get_tile_from_screen_coords(self,pos):
-        off_x, off_y = self.get_screen_padding_lt()
-        x,y = pos[0]-off_x,pos[1]-off_y
+        x,y = pos - self.get_screen_padding_lt()
         tile_w, tile_h = self.get_default_tile_size()
         return (x/tile_w,y/tile_h )
 
@@ -275,12 +274,8 @@ class Frontend:
     def draw_transitive_menu(self,x,y):
         msg = self.menu_obj.get_verb_sentence_initcap(self.following_with_transitive_verb,
                                                       *self.transitive_verb_putative_objects)
-        # text = txtlib.Text((150,20), 'freesans')
-        # text.text = msg
-        # text.update()
-        # r_verb = text.area.get_rect().move(x-30, y-30)
-        # self.screen.blit(text.area, r_verb.topleft)
-        render_text(msg,**render_menu_defaults).blit_to(self.screen,(x-30,y-30))
+        render_obj = render_text( msg, **render_menu_defaults )
+        render_obj.blit_to( self.screen,(x-30,y-30) )
        
     def is_in_menu(self,pt):
         return any( ( rect.collidepoint(pt) for rect in self.menu_rects ) )

@@ -32,14 +32,20 @@ class Pos:
         
     def __radd__(self,other):
         return self.__add__(other)
+        
+    def __sub__(self,other):
+        return Pos(self.x-other[0],self.y-other[1])
+
+    def __rsub__(self,other):
+        return Pos(other[0]-self.x,other[1]-self.y)
 
     def __mul__(self,other):
-        assert isinstance(other,Number) # TODO: Implement piecewise multiplication
-        return Pos(self.x*other,self.y*other)
-    
+        iter_args = (other, other) if isinstance(other,Number) else other
+        return Pos(self.x*iter_args[0],self.y*iter_args[1])
+
     def __div__(self,other):
-        assert isinstance(other,Number)
-        return Pos(self.x/other,self.y/other)
+        iter_args = (other, other) if isinstance(other,Number) else other
+        return Pos(self.x/iter_args[0],self.y/iter_args[1])
     
     def __len__(self):
         return 2
