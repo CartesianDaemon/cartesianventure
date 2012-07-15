@@ -1,3 +1,4 @@
+# Internal modules
 from helpers import *
 
 class Event:

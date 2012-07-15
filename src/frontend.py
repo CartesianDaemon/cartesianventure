@@ -1,10 +1,12 @@
 # Standard modules
 import sys
+import pickle
+from itertools import chain
+
+# Pygame
 import pygame
 from pygame.locals import *
 from pygame.compat import geterror
-from itertools import chain
-import pickle
 
 # Other modules
 import txtlib.txtlib as txtlib
@@ -12,7 +14,6 @@ import txtlib.txtlib as txtlib
 # Internal modules
 from src.helpers import *
 from src.backend import Backend
-from src.graphic_source import GraphicSource # For testing
 
 enable_splash = 'nosplash' not in sys.argv
 log_file = open('eventlog.bin', 'wb') if 'logevents' in sys.argv else None

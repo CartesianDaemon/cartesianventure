@@ -1,8 +1,10 @@
+# Standard modules
 import data
+
+# Internal modules
 from src.helpers import *
-from src.obj import *
-from src.map import *
-from src.rules import *
+from src.map import Map, ObjMap, MapSquare
+from src.rules import Rules, Rule, Event
 
 class Backend:
     def __init__(self):

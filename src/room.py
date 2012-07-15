@@ -1,3 +1,4 @@
+# Internal modules
 from src.helpers import *
 from src.obj import Obj
 
@@ -10,3 +11,5 @@ prop_defaults = Bunch(
     wall =       Bunch(moveable=False, pickable=False, hoverable=False, can_support=False, passable=False ),
 )
 
+class Room:
+    pass

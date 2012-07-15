@@ -1,3 +1,4 @@
+# Standard modules
 from itertools import chain
 
 class Bunch(dict):

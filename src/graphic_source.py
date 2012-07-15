@@ -1,7 +1,10 @@
+# Standard modules
 import copy
 import random
 import pygame
 from pygame.locals import *
+
+# Internal modules
 from helpers import *
 
 class GraphicSource:

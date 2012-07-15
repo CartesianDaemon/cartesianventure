@@ -1,6 +1,9 @@
-from graphic_source import *
-from helpers import *
+# Standard modules
 from itertools import izip_longest
+import copy
+
+# Internal modules
+from helpers import *
 
 class Defs(Bunch):
     pass

@@ -1,5 +1,5 @@
+# Internal modules
 from src.helpers import *
-from src.obj import *
 
 class MapSquare:
     def __init__(self,base_layers,obj_layers,base_context):
