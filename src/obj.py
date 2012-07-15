@@ -64,8 +64,8 @@ class Obj():
     def get_context(self):
         return self.context
     
-    def get_surface(self,*args):
-        return self.graphic_source.get_surface(*args)
+    def get_surface(self,tile_width,tile_height):
+        return self.graphic_source.get_surface(self.x,self.y,tile_width,tile_height,self.get_context())
         
     def is_hoverable(self):
         return self.hoverable;
