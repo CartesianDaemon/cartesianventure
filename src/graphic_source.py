@@ -69,6 +69,6 @@ class ContextualGraphicSource:
     def load(self,*args):
         for gs in self.tiles: gs.load(*args)
         
-    def get_surface(self,xidx,yidx,w,h,context):
+    def get_surface(self,pos,w,h,context,is_transparent):
         tile = self.tiles.get(context,self.tiles['x'])
-        return tile.get_surface(xidx,yidx,w,h)
+        return tile.get_surface(pos,w,h,is_transparent)
