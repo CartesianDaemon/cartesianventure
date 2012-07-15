@@ -81,7 +81,6 @@ room.make_objs( default_props = prop_defaults.pickable,
                     graphic_source=GraphicSource("data/img_circ/Bench.bmp",508,112,40,40,colorkey='topleft')),
 )
 
-room.init_obj_map = ObjMap( [[ None for char in line] for line in init_map_str.splitlines()] )
 room.create_obj_at(6,4,room.defs['crucible'])
 
 ##############################################################

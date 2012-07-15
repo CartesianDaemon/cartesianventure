@@ -4,9 +4,6 @@ import copy
 
 # Internal modules
 from helpers import *
-
-class Defs(Bunch):
-    pass
     
 class Verb:
     def __init__(self,*args):

@@ -1,22 +1,17 @@
-# Standard modules
-import data
-
 # Internal modules
 from src.helpers import *
 from src.map import Map, ObjMap, MapSquare
 from src.rules import Rules, Rule, Event
+import src.room_data as room_data
 
 class Backend:
     def __init__(self):
-        self.defs = Bunch()
         self.rules = Rules()
 
-    def load(self,module):
-        rm = data.__dict__[module].room
-        self.defs.update(rm.defs)
-        self.rules.update(rm.rules)
-        self.map = rm.map
-        self.obj_map = rm.init_obj_map
+    def load(self,filename):
+        # TODO: need copy?
+        self.curr_room = room_data.load_room(filename)
+        self.rules.update(self.curr_room.rules)
     
     def do(self,verb,*arg_objs):
         print (verb,)+tuple(obj.name for obj in arg_objs)
@@ -64,7 +59,7 @@ class Backend:
                 self.remove_obj(old_obj)
                 event.old_objs.append(old_obj.copy())
             else:
-                new_obj = self.defs[new_key].copy()
+                new_obj = self.curr_room.defs[new_key].copy()
                 new_obj.created_by_event = [event]
                 old_obj.used_in_events_past.append(event)
                 event.old_objs.append(old_obj.copy())
@@ -87,40 +82,23 @@ class Backend:
         self.print_msg("I don't know how to do that")
     
     def move_obj(self,x,y,obj):
-        self.obj_map.move_to(x,y,obj)
+        self.curr_room.obj_map.move_to(x,y,obj)
         
     def delete_obj(self,obj):
-        # TODO: work with large obj in map, not obj_map
-        self.obj_map.remove_obj(obj)
+        self.curr_room.obj_map.remove_obj(obj)
         
     def convert_obj(self,old_obj,new_obj):
-        # TODO: work with large obj in map, not obj_map
-        self.obj_map.convert_obj(old_obj,new_obj)
+        self.curr_room.obj_map.convert_obj(old_obj,new_obj)
     
     def _get_mapsquare_at(self,x,y):
-        return MapSquare(self.map.get_layers_at(x,y), self.obj_map.get_layers_at(x,y), self.map.get_context_at(x,y))
+        return MapSquare(self.curr_room.map.get_layers_at(x,y), self.curr_room.obj_map.get_layers_at(x,y),
+                                                                self.curr_room.map.get_context_at(x,y))
         
     def get_obj_at(self,x,y):
         return self._get_mapsquare_at(x,y).get_combined_mainobj()
     
     def get_mapsquares_by_rows(self):
-        return ( (x,y,self._get_mapsquare_at(x,y)) for x,y in self.map.get_coords_by_rows() )
+        return ( (x,y,self._get_mapsquare_at(x,y)) for x,y in self.curr_room.map.get_coords_by_rows() )
         
     def get_map_size(self):
-        return self.map.map_size()
-    
-    # def get_map(self):
-    #     return self.map.map
-    #     
-    # def get_contexts(self):
-    #     return self.map.get_contexts()
-    # 
-    # def get_obj_map(self):
-    #     return self.obj_map
-    
-    # def obj_in_room(self,key):
-    #     return key in self.state.free_objs
-    # 
-    # def obj_carried(self,key):
-    #     return key in self.state.carrying
-                
+        return self.curr_room.map.map_size()

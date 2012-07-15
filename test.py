@@ -27,6 +27,10 @@
 # Move on/onto. Verb blah with itself.
 # Fix capitalization. List of verbs from one place.
 # Examine verb. Intransitive verbs for fixed objects.
+#
+# 15 July 2012
+#
+# Much refactoring
 
 import unittest
 import os
@@ -75,8 +79,10 @@ class TestHelpers(unittest.TestCase):
 
 class TestBackend(unittest.TestCase):
     def setUp(self):
+        default_room_filename = 'distillery'
         self.backend_distillery = Backend()
-        self.backend_distillery.load('distillery')
+        self.backend_distillery.load(default_room_filename)
+        self.defs = room_data.load_room(default_room_filename).defs
 
     def test_1setup(self):
         pass
@@ -88,9 +94,9 @@ class TestBackend(unittest.TestCase):
         self.assertEqual(self.obj_at(0,2).context,'br' )
     
     def test_verblist(self):
-        crucible = self.backend_distillery.defs.crucible
-        crucible_w = self.backend_distillery.defs.crucible_w
-        well = self.backend_distillery.defs.well
+        crucible = self.defs.crucible
+        crucible_w = self.defs.crucible_w
+        well = self.defs.well
         self.assertEqual(crucible.get_verb_sentence_ncase('use'),"use crucible with ...")
         self.assertEqual(crucible.get_verb_sentence_initcap('use'),"Use crucible with ...")
         self.assertEqual(crucible.get_verb_sentence_initcap('use',crucible_w),"Use crucible with crucible")

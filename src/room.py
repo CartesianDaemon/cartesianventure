@@ -22,11 +22,12 @@ class Room:
     def add_rule(self,*args,**kwargs):
         self.rules.add_rule(*args,**kwargs)
         
-    def create_obj_at(self,*args,**kwargs):
-        self.init_obj_map.create_at(*args,**kwargs)
+    def create_obj_at(self,x,y,obj):
+        self.obj_map.create_at(x,y,obj)
         
-    def make_map_from_key(self,*args,**kwargs):
-        self.map.make_map_from_key(*args,**kwargs)
+    def make_map_from_key(self,init_map_str,charkey_func):
+        self.map.make_map_from_key(init_map_str,charkey_func)
+        self.obj_map = ObjMap( init_map_str.splitlines() )
         
     def make_objs(self,default_props={}, **kwargs):
         self.defs.update( { key: obj.update(key=key,**default_props) for key, obj in kwargs.iteritems() } )

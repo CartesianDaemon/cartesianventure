@@ -81,7 +81,7 @@ class Map:
         
 class ObjMap:
     def __init__(self,obj_map):
-        self.obj_map = obj_map
+        self.obj_map = [ [ None for _ in row ] for row in obj_map]
         
     def create_at(self,x,y,obj):
         obj.x = x
