@@ -33,6 +33,23 @@ class Pos:
     def __radd__(self,other):
         return self.__add__(other)
 
+    def __mul__(self,other):
+        assert isinstance(other,Number) # TODO: Implement piecewise multiplication
+        return Pos(self.x*other,self.y*other)
+    
+    def __div__(self,other):
+        assert isinstance(other,Number)
+        return Pos(self.x/other,self.y/other)
+    
+    def __len__(self):
+        return 2
+    
+    def __eq__(self,other):
+        return len(other)==2 and self[0]==other[0] and self[1]==other[1]
+        
+    # def __ne__(self,other):
+    #     return not self==other
+
 class Struct:
     pass
     

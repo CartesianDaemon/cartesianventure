@@ -88,7 +88,9 @@ class TestHelpers(unittest.TestCase):
         with self.assertRaises(IndexError): pos2[-1]
         with self.assertRaises(IndexError): pos2[2]
         with self.assertRaises(IndexError): pos2['foo']
-                
+        self.assertEquals( Pos(10,20)*10, Pos(100,200) )
+        self.assertEquals( Pos(10,20)/10, (1,2) )
+
 #     def test_maybe(self):
 #         self.assertEquals(Maybe("abc").capitalize(),"Abc")
 #         self.assertIsNone(Maybe(None).foo)

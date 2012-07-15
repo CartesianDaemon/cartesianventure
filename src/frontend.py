@@ -79,7 +79,7 @@ class Frontend:
         sys.stdout.flush()
 
     def get_default_tile_size(self):
-        return 64,64
+        return Pos(64,64)
         
     def get_tile_from_screen_coords(self,pos):
         off_x, off_y = self.get_screen_padding()[0:2]
@@ -192,9 +192,11 @@ class Frontend:
                 # self.last_mouse_obj = tile_obj or tile_base
     
     def draw_menu(self,mouse_x,mouse_y):
-        x,y = self.get_screen_from_tile_coords( * self.get_tile_from_screen_coords((mouse_x,mouse_y)) )
-        x += self.get_default_tile_size()[0]/2
-        y += self.get_default_tile_size()[1]/2
+        tile_pos = self.get_screen_from_tile_coords( * self.get_tile_from_screen_coords((mouse_x,mouse_y)) )
+        if self.draw_menu_around_tile_not_mouse:
+            x,y = tile_pos + self.get_default_tile_size() / 2
+        else:
+            x,y = mouse_x,mouse_y
         verb_vpadding = 10
         verb_offset_x, verb_offset_y = +0,+20
         
@@ -255,11 +257,12 @@ class Frontend:
         #
         # Menu rects define area where mouse doesn't cause menu to disappear
         # Includes area of menu, slight border, area around mouse, and whole tile
-        r_courtesy_area = Rect(x-20,y-20,40,40)
-        tile_x,tile_y = self.get_tile_from_screen_coords((x,y))
-        r_tile = Rect(self.get_screen_from_tile_coords(tile_x,tile_y),self.get_default_tile_size())
+        if self.draw_menu_around_tile_not_mouse:
+            r_courtesy_area = Rect(x-20,y-20,40,40)
+        else:
+            r_courtesy_area = Rect(tile_pos,self.get_default_tile_size())
         r_whole_menu = unionall(hit_rect_struct.hit_rect for hit_rect_struct in self.menu_hit_rects)
-        self.menu_rects = ( r_courtesy_area, r_tile, r_whole_menu.inflate(15,15) )
+        self.menu_rects = ( r_courtesy_area, r_whole_menu.inflate(15,15) )
     
     def draw_transitive_menu(self,x,y):
         text = txtlib.Text((150,20), 'freesans')
