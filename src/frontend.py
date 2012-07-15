@@ -200,13 +200,16 @@ class Frontend:
         # r_verbs = Rect(x+verb_offset_x,y+verb_offset_y,verb_width,0)
         # r_undos = Rect(x+verb_offset_x,y+verb_offset_y,verb_width,0)
         
-        desc_font = pygame.font.Font(None,25)
         short_desc = self.menu_obj.get_short_desc()
         if short_desc:
-            desc_text = desc_font.render(short_desc,1,(10,10,10),(255,255,255))
-            desc_text.set_alpha(128, RLEACCEL)
-            r_desc = desc_text.get_rect().move(x-20,y-40)
-            self.screen.blit( desc_text, r_desc.topleft )
+            # desc_font = pygame.font.Font(None,25)
+            # desc_surface = desc_font.render(short_desc,1,(10,10,10),(255,255,255))
+            desc_obj = render_text(short_desc, **render_desc_defaults )
+            desc_surface = desc_obj.get_surface()
+            r_desc = desc_surface.get_rect().move(x-20,y-40)
+            desc_obj.blit_to( self.screen, r_desc.topleft )
+            # self.screen.blit( desc_surface, r_desc.topleft )
+            
         self.menu_hit_rects = []
         verb_list = self.menu_obj.get_verb_sentences_initcap()
         for idx,(verb,sentence) in enumerate(verb_list):
@@ -310,9 +313,43 @@ Click to continue...
         text.update()
         self.screen.blit(text.area, (x, y))
 
+render_desc_defaults = dict(xpadding=3, ypadding=1, font_size=20, font_col=(255,255,255),back_col=(0,0,0), back_alpha=128)
+        
+class render_text:
+    def __init__(self,msg,xpadding=5,ypadding=5,font_size=16,font_col=(0,0,0),back_col=(255,255,255),back_alpha=None):
+        self._text_surface = None
+        self._xpadding, self._ypadding = xpadding, ypadding
+        self._back_col = back_col
+        self._back_alpha = back_alpha
+        font = pygame.font.Font(None,font_size)
+        self._text_surface = font.render(msg,1,font_col)
+        self._extend_to_width = 0
+
+    def get_size(self):
+        return ( max(self._extend_to_width, self._xpadding*2 + self._text_surface.get_width()),
+                                            self._ypadding*2 + self._text_surface.get_height() )
+
+    def extend_width_to(self, new_width):
+        self._extend_to_width = new_width
+        
+    def _get_back_surface(self):
+        surface = pygame.Surface( self.get_size() )
+        surface.fill(self._back_col)
+        surface.set_alpha(self._back_alpha, RLEACCEL)
+        return surface
+
+    def get_surface(self):
+        surface = self._get_back_surface()
+        surface.blit(self._text_surface, (self._xpadding, self._ypadding) )
+        return surface
+        
+    def blit_to(self,screen,blit_pos):
+        screen.blit( self._get_back_surface(), blit_pos )
+        screen.blit( self._text_surface, (blit_pos[0]+self._xpadding,blit_pos[1]+self._ypadding) )
+    
 def main():
     Frontend(default_room='distillery').main()        
-
+    
 #this calls the 'main' function when this script is executed
 if __name__ == '__main__':
     main()
