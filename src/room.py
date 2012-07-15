@@ -2,7 +2,7 @@
 from src.helpers import *
 from src.obj import Obj, make_objs
 from src.rules import Rules, Rule
-from map import Map, ObjMap
+from map import Map, ObjMap, Layers
 
 prop_defaults = Bunch(
     pickable =   Bunch(moveable=True , pickable=True , hoverable=True , can_support=False, passable=True  ),
