@@ -35,11 +35,13 @@ class Layers:
 
 class Map:
     def __init__(self):
+        self.obj_map = None
         self.contexts = None
     
     def make_map_from_key(self,init_map_str,charkey_func):
         char_map = init_map_str.splitlines()
-        self.map = [ [ None for _ in row ] for row in char_map]
+        self.map =     [ [ None for _ in row ] for row in char_map]
+        self.obj_map = [ [ None for _ in row ] for row in char_map]
         for y,line in enumerate(char_map):
             for x,char in enumerate(line):
                 self.map[y][x] = charkey_func(char,x,y).copy()
@@ -74,15 +76,6 @@ class Map:
         
     def get_coords_by_rows(self):
         return ( (x,y) for y,line in enumerate(self.map) for x,_ in enumerate(line)  )
-            
-class CombinedMap:
-    def __init__(self):
-        self.map = Map()
-        self.obj_map = None
-
-    def make_map_from_key(self,init_map_str,charkey_func):
-        self.map.make_map_from_key(init_map_str,charkey_func)
-        self.obj_map = [ [ None for _ in row ] for row in init_map_str.splitlines()]
 
     def create_at(self,x,y,obj):
         obj.x = x

@@ -1,6 +1,6 @@
 # Internal modules
 from src.helpers import *
-from src.map import CombinedMap, MapSquare
+from src.map import Map, MapSquare
 from src.rules import Rules, Rule, Event
 import src.room_data as room_data   
 
@@ -82,24 +82,24 @@ class Backend:
         self.print_msg("I don't know how to do that")
     
     def move_obj(self,x,y,obj):
-        self.curr_room.combined_map.move_to(x,y,obj)
+        self.curr_room.map.move_to(x,y,obj)
         
     def delete_obj(self,obj):
-        self.curr_room.combined_map.remove_obj(obj)
+        self.curr_room.map.remove_obj(obj)
         
     def convert_obj(self,old_obj,new_obj):
-        self.curr_room.combined_map.convert_obj(old_obj,new_obj)
+        self.curr_room.map.convert_obj(old_obj,new_obj)
     
     def _get_mapsquare_at(self,x,y):
-        return MapSquare(self.curr_room.combined_map.map.get_layers_at(x,y),
-                         self.curr_room.combined_map.get_obj_layers_at(x,y),
-                         self.curr_room.combined_map.map.get_context_at(x,y))
+        return MapSquare(self.curr_room.map.get_layers_at(x,y),
+                         self.curr_room.map.get_obj_layers_at(x,y),
+                         self.curr_room.map.get_context_at(x,y))
         
     def get_obj_at(self,x,y):
         return self._get_mapsquare_at(x,y).get_combined_mainobj()
     
     def get_mapsquares_by_rows(self):
-        return ( (x,y,self._get_mapsquare_at(x,y)) for x,y in self.curr_room.combined_map.map.get_coords_by_rows() )
+        return ( (x,y,self._get_mapsquare_at(x,y)) for x,y in self.curr_room.map.get_coords_by_rows() )
         
     def get_map_size(self):
-        return self.curr_room.combined_map.map.map_size()
+        return self.curr_room.map.map_size()

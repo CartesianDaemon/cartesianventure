@@ -2,7 +2,7 @@
 from src.helpers import *
 from src.obj import Obj
 from src.rules import Rules, Rule
-from map import CombinedMap, Map, Layers
+from map import Map, Layers
 
 prop_defaults = Bunch(
     pickable =   Bunch(moveable=True , pickable=True , hoverable=True , can_support=False, passable=True  ),
@@ -16,17 +16,17 @@ prop_defaults = Bunch(
 class Room:
     def __init__(self):
         self.rules = Rules()
-        self.combined_map = CombinedMap()
+        self.map = Map()
         self.defs = Bunch()
 
     def add_rule(self,*args,**kwargs):
         self.rules.add_rule(*args,**kwargs)
 
     def create_obj_at(self,x,y,obj):
-        self.combined_map.create_at(x,y,obj)
+        self.map.create_at(x,y,obj)
 
     def make_map_from_key(self,init_map_str,charkey_func):
-        self.combined_map.make_map_from_key(init_map_str,charkey_func)
+        self.map.make_map_from_key(init_map_str,charkey_func)
         
     def make_objs(self,default_props={}, **kwargs):
         self.defs.update( { key: obj.update(key=key,**default_props) for key, obj in kwargs.iteritems() } )
