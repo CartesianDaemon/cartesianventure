@@ -36,12 +36,12 @@ class Frontend:
 
         self.screen = pygame.display.set_mode( tuple(a*b+pad1+pad2 for a,b,pad1,pad2 in zip( self.backend.get_map_size(),
                                                                                             self.get_default_tile_size(),
-                                                                                            self.get_screen_padding()[0:2],
-                                                                                            self.get_screen_padding()[2:4],
+                                                                                            self.get_screen_padding_lt(),
+                                                                                            self.get_screen_padding_rb(),
                                                                                             ) ) )
         pygame.display.set_caption('Cartesianventure sample: Alchemical Distillery')
 
-        self.background = pygame.Surface(self.screen.get_size())
+        self.background = pygame.Surface(self.screen.get_size()+self.get_screen_padding_lt()+self.get_screen_padding_rb())
         self.background = self.background.convert()
         self.background.fill((0, 0, 0))
 
@@ -49,8 +49,11 @@ class Frontend:
         
         self.FRAME_TIMER = pygame.USEREVENT+1
 
-    def get_screen_padding(self):
-        return 0,0,0,0
+    def get_screen_padding_lt(self):
+        return Pos(0,0)
+
+    def get_screen_padding_rb(self):
+        return Pos(0,0)
 
     def main(self):
         if enable_splash:
@@ -84,13 +87,13 @@ class Frontend:
         return Pos(64,64)
         
     def get_tile_from_screen_coords(self,pos):
-        off_x, off_y = self.get_screen_padding()[0:2]
+        off_x, off_y = self.get_screen_padding_lt()
         x,y = pos[0]-off_x,pos[1]-off_y
         tile_w, tile_h = self.get_default_tile_size()
         return (x/tile_w,y/tile_h )
 
     def get_screen_from_tile_coords(self,x,y):
-        off_x, off_y = self.get_screen_padding()[0:2]
+        off_x, off_y = self.get_screen_padding_lt()
         tile_w, tile_h = self.get_default_tile_size()
         return (off_x+x*tile_w, off_y+y*tile_h )
 
@@ -149,13 +152,13 @@ class Frontend:
                 self.menu_hit_idx = None
                 if self.menu_pos and self.is_in_menu(event.pos):
                     self.last_mouse_in_menu_time = pygame.time.get_ticks()
-                    for idx,hit_rect_struct in enumerate(self.menu_hit_rects):
+                    for idx,hit_rect_struct in enumerate(self.menu_hit_rect_structs):
                         if hit_rect_struct.hit_rect.collidepoint(event.pos):
                             self.menu_hit_idx = idx
                             break
         elif event.type == MOUSEBUTTONDOWN:
             if self.following_with_transitive_verb:
-                menu_hit_rect = self.menu_hit_rects[self.menu_hit_idx]
+                menu_hit_rect = self.menu_hit_rect_structs[self.menu_hit_idx]
                 self.transitive_verb_objects.append(curr_obj)
                 if self.menu_obj.get_remaining_verb_arity(menu_hit_rect.verb,*self.transitive_verb_objects)==0:
                     self.backend.do(self.following_with_transitive_verb,self.menu_obj,*self.transitive_verb_objects)
@@ -164,7 +167,7 @@ class Frontend:
                     self.last_mouse_pos = None
             elif self.menu_pos:
                 if self.menu_hit_idx is not None:
-                    menu_hit_rect = self.menu_hit_rects[self.menu_hit_idx]
+                    menu_hit_rect = self.menu_hit_rect_structs[self.menu_hit_idx]
                     # Do transitive verb or attach intr verb to mouse cursor
                     if menu_hit_rect.verb == '_undo':
                         self.backend.do_undo(menu_hit_rect.undo_event)
@@ -204,28 +207,27 @@ class Frontend:
         
         short_desc = self.menu_obj.get_short_desc()
         if short_desc:
-            desc_obj = render_text(short_desc, **render_desc_defaults )
-            desc_obj.blit_to( self.screen, (x-20,y-40) )
-            
+            render_text(short_desc, **render_desc_defaults ).blit_to( self.screen, (x-20,y-40) )
+
         verb_width , verb_height = 120 , 20
         undo_width, undo_height = 180, verb_height
         verb_vstride = verb_height+verb_vpadding
  
-        self.menu_hit_rects = []
+        self.menu_hit_rect_structs = []
         verb_list = self.menu_obj.get_verb_sentences_initcap()
         for idx,(verb,sentence) in enumerate(verb_list):
             text = txtlib.Text((verb_width, verb_height), 'freesans')
             text.text = sentence
             text.update()
+            # render_obj = render_text(msg, **render_menu_defaults)
             r_verb = text.area.get_rect().move(x+verb_offset_x, y+verb_offset_y+verb_vstride*idx)
             if idx == self.menu_hit_idx:
                 r_verb = r_verb.move(2,1)
             self.screen.blit(text.area, r_verb.topleft)
-            #r_verbs.h += verb_vstride
             hit_rect_struct = Struct()
             hit_rect_struct.verb = verb
             hit_rect_struct.hit_rect = r_verb
-            self.menu_hit_rects.append(hit_rect_struct)
+            self.menu_hit_rect_structs.append(hit_rect_struct)
         
         if self.menu_obj.get_undoable_events():
             undo_event = self.menu_obj.get_undoable_events()[-1]
@@ -233,7 +235,7 @@ class Frontend:
             text.text = "Undo " + undo_event.event_text_ncase()
             text.update()
             r_undo = text.area.get_rect().move(x+verb_offset_x-undo_width-5, y+verb_offset_y)
-            if (self.menu_hit_idx == len(self.menu_hit_rects)):
+            if (self.menu_hit_idx == len(self.menu_hit_rect_structs)):
                 r_undo = r_undo.move(2,1)
             self.screen.blit(text.area, r_undo.topleft)
             #r_undos.h += verb_vstride
@@ -241,7 +243,7 @@ class Frontend:
             hit_rect_struct.verb = '_undo'
             hit_rect_struct.undo_event = undo_event
             hit_rect_struct.hit_rect = r_undo
-            self.menu_hit_rects.append(hit_rect_struct)
+            self.menu_hit_rect_structs.append(hit_rect_struct)
         
         if self.menu_obj.get_redoable_events():
             redo_event = self.menu_obj.get_redoable_events()[-1]
@@ -249,7 +251,7 @@ class Frontend:
             text.text = "Redo " + redo_event.event_text()
             text.update()
             r_redo = text.area.get_rect().move(x+verb_offset_x-undo_width-5, y+verb_offset_y+verb_vstride)
-            if (self.menu_hit_idx == len(self.menu_hit_rects)):
+            if (self.menu_hit_idx == len(self.menu_hit_rect_structs)):
                 r_redo = r_redo.move(2,1)
             self.screen.blit(text.area, r_redo.topleft)
             #undos.h += verb_vstride
@@ -257,7 +259,7 @@ class Frontend:
             hit_rect_struct.verb = '_redo'
             hit_rect_struct.redo_event = redo_event
             hit_rect_struct.hit_rect = r_redo
-            self.menu_hit_rects.append(hit_rect_struct)
+            self.menu_hit_rect_structs.append(hit_rect_struct)
 
         # Menu rects
         #
@@ -267,16 +269,18 @@ class Frontend:
             r_courtesy_area = Rect(x-20,y-20,40,40)
         else:
             r_courtesy_area = Rect(tile_pos,self.get_default_tile_size())
-        r_whole_menu = unionall(hit_rect_struct.hit_rect for hit_rect_struct in self.menu_hit_rects)
+        r_whole_menu = unionall(hit_rect_struct.hit_rect for hit_rect_struct in self.menu_hit_rect_structs)
         self.menu_rects = ( r_courtesy_area, r_whole_menu.inflate(15,15) )
     
     def draw_transitive_menu(self,x,y):
-        text = txtlib.Text((150,20), 'freesans')
-        text.text = self.menu_obj.get_verb_sentence_initcap(self.following_with_transitive_verb,
-                                                            *self.transitive_verb_putative_objects)
-        text.update()
-        r_verb = text.area.get_rect().move(x-30, y-30)
-        self.screen.blit(text.area, r_verb.topleft)
+        msg = self.menu_obj.get_verb_sentence_initcap(self.following_with_transitive_verb,
+                                                      *self.transitive_verb_putative_objects)
+        # text = txtlib.Text((150,20), 'freesans')
+        # text.text = msg
+        # text.update()
+        # r_verb = text.area.get_rect().move(x-30, y-30)
+        # self.screen.blit(text.area, r_verb.topleft)
+        render_text(msg,**render_menu_defaults).blit_to(self.screen,(x-30,y-30))
        
     def is_in_menu(self,pt):
         return any( ( rect.collidepoint(pt) for rect in self.menu_rects ) )
@@ -316,11 +320,12 @@ Click to continue...
         self.screen.blit(text.area, (x, y))
 
 render_desc_defaults = dict(xpadding=3, ypadding=1, font_size=20, font_col=(255,255,255),back_col=(0,0,0), back_alpha=128)
-        
+render_menu_defaults = dict(xpadding=5,ypadding=5,font_size=16,font_col=(0,0,0),back_col=(255,255,255),back_alpha=None)
+
 class render_text:
-    def __init__(self,msg,xpadding=5,ypadding=5,font_size=16,font_col=(0,0,0),back_col=(255,255,255),back_alpha=None):
+    def __init__(self,msg,xpadding=0,ypadding=0,font_size=16,font_col=(0,0,0),back_col=(255,255,255),back_alpha=None):
         self._text_surface = None
-        self._xpadding, self._ypadding = xpadding, ypadding
+        self._padding = Pos(xpadding,ypadding)
         self._back_col = back_col
         self._back_alpha = back_alpha
         font = pygame.font.Font(None,font_size)
@@ -328,8 +333,8 @@ class render_text:
         self._extend_to_width = 0
 
     def get_size(self):
-        return ( max(self._extend_to_width, self._xpadding*2 + self._text_surface.get_width()),
-                                            self._ypadding*2 + self._text_surface.get_height() )
+        return ( max(self._extend_to_width, self._padding[0]*2 + self._text_surface.get_width()),
+                                            self._padding[1]*2 + self._text_surface.get_height() )
 
     def extend_width_to(self, new_width):
         self._extend_to_width = new_width
@@ -342,12 +347,12 @@ class render_text:
 
     def get_surface(self):
         surface = self._get_back_surface()
-        surface.blit(self._text_surface, (self._xpadding, self._ypadding) )
+        surface.blit(self._text_surface, self._padding )
         return surface
         
     def blit_to(self,screen,blit_pos):
         screen.blit( self._get_back_surface(), blit_pos )
-        screen.blit( self._text_surface, (blit_pos[0]+self._xpadding,blit_pos[1]+self._ypadding) )
+        screen.blit( self._text_surface, blit_pos + self._padding )
     
 def main():
     Frontend(default_room='distillery').main()        
