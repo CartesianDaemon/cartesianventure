@@ -144,6 +144,3 @@ class Obj():
             
     def draw_contiguously_with(self,other_layers):
         return any( self.key == other_obj.key for other_obj in other_layers.lst)
-
-def make_objs(default_props={}, **kwargs):
-    return Bunch({ key: obj.update(key=key).update(**kwargs).update(**default_props) for key, obj in kwargs.iteritems() })

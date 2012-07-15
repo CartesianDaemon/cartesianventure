@@ -1,6 +1,6 @@
 # Internal modules
 from src.helpers import *
-from src.obj import Obj, make_objs
+from src.obj import Obj
 from src.rules import Rules, Rule
 from map import Map, ObjMap, Layers
 
@@ -28,6 +28,6 @@ class Room:
     def make_map_from_key(self,*args,**kwargs):
         self.map.make_map_from_key(*args,**kwargs)
         
-    def make_objs(self,*args, **kwargs):
-        self.defs.update( make_objs(*args,**kwargs) )
+    def make_objs(self,default_props={}, **kwargs):
+        self.defs.update( { key: obj.update(key=key,**default_props) for key, obj in kwargs.iteritems() } )
 
