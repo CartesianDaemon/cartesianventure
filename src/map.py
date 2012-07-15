@@ -74,9 +74,6 @@ class Map:
     def map_size(self):
         return (len(self.map[0]),len(self.map))
         
-    def get_coords_by_rows(self):
-        return ( (x,y) for y,line in enumerate(self.map) for x,_ in enumerate(line)  )
-
     def create_at(self,x,y,obj):
         obj.x = x
         obj.y = y
@@ -101,3 +98,13 @@ class Map:
     def get_obj_layers_at(self,x,y):
         lst = (self.obj_map[y][x],) if self.obj_map[y][x] else ()
         return Layers(*lst)
+        
+    def get_mapsquare_at(self,x,y):
+        return MapSquare(self.get_layers_at(x,y),
+                         self.get_obj_layers_at(x,y),
+                         self.get_context_at(x,y))
+
+    def get_mapsquares_by_rows(self):
+        return ( ( self.get_mapsquare_at(x,y) for x,_ in enumerate(line) ) for y,line in enumerate(self.map) )
+
+        

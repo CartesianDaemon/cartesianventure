@@ -90,16 +90,11 @@ class Backend:
     def convert_obj(self,old_obj,new_obj):
         self.curr_room.map.convert_obj(old_obj,new_obj)
     
-    def _get_mapsquare_at(self,x,y):
-        return MapSquare(self.curr_room.map.get_layers_at(x,y),
-                         self.curr_room.map.get_obj_layers_at(x,y),
-                         self.curr_room.map.get_context_at(x,y))
-        
     def get_obj_at(self,x,y):
-        return self._get_mapsquare_at(x,y).get_combined_mainobj()
+        return self.curr_room.map.get_mapsquare_at(x,y).get_combined_mainobj()
     
     def get_mapsquares_by_rows(self):
-        return ( (x,y,self._get_mapsquare_at(x,y)) for x,y in self.curr_room.map.get_coords_by_rows() )
+        return self.curr_room.map.get_mapsquares_by_rows()
         
     def get_map_size(self):
         return self.curr_room.map.map_size()
