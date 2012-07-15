@@ -54,3 +54,8 @@ DefaultArg = Struct()
 def capitalize_first(str):
     ret = str[0].capitalize() + str[1:]
     return ret
+    
+    
+def enumerate_2d(arr_2d):
+    return ( (x, y, val) for y,line in enumerate(arr_2d) for x,val in enumerate(line) )
+    

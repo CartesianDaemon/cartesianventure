@@ -95,13 +95,12 @@ class Frontend:
     def draw_all(self):
         self.screen.blit(self.background, (0, 0))
         tile_width, tile_height = self.get_default_tile_size()
-        for y,row in enumerate(self.backend.get_mapsquares_by_rows()):
-            for x,map_square in enumerate(row):
-                screen_x, screen_y = self.get_screen_from_tile_coords(x,y)
-                for obj in map_square.get_combined_lst():
-                    assert obj is not None
-                    tile_surface = obj.get_surface(x,y,tile_width,tile_height,obj.context)
-                    self.screen.blit( tile_surface, (screen_x, screen_y + (tile_height-tile_surface.get_height()) ) )
+        for x, y, map_square in enumerate_2d( self.backend.get_mapsquares_by_rows() ):
+            screen_x, screen_y = self.get_screen_from_tile_coords(x,y)
+            for obj in map_square.get_combined_lst():
+                assert obj is not None
+                tile_surface = obj.get_surface(x,y,tile_width,tile_height,obj.context)
+                self.screen.blit( tile_surface, (screen_x, screen_y + (tile_height-tile_surface.get_height()) ) )
             
     def handle_and_draw_menu(self):
         if self.following_with_transitive_verb:
