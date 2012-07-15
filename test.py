@@ -54,6 +54,17 @@ class TestSyntax(unittest.TestCase):
         with self.assertRaises(EOFError):
             pickle.load(fh)
 
+    def get_add_x(self,arg):
+        def add_x(val):
+            return arg+val
+        return add_x
+        
+    def test_closure(self):
+        add_1 = self.get_add_x(1)
+        add_2 = self.get_add_x(2)
+        self.assertEquals(add_1(10),11)    
+        self.assertEquals(add_2(10),12)    
+
 class TestBunch(unittest.TestCase):
     def test_set(self):
         bunch = Bunch()

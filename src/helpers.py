@@ -27,25 +27,44 @@ class Pos:
         if not 0 <= idx <=1: raise IndexError
         return (self.x,self.y)[idx]
         
-    def __add__(self,other):
-        return Pos(self.x+other[0],self.y+other[1])
+    def __getattr__(self,attr):
+        if attr in ('__add__','__sub__','__radd__','__rsub__'):
+            return lambda other: self.apply_elementwise(attr,other)
+        elif attr in ('__mul__','__div__','__rmul__','__rdiv__',):
+            return lambda other: self.apply_distributive_or_elementwise(attr,other)
+        else:
+            raise AttributeError
+
+    def apply_elementwise(self,attr,other):
+        return Pos( getattr(a,attr)(b) for a,b in zip(self,other) )
+
+    def apply_distributive(self,attr,other):
+        return Pos( getattr(a,attr)(other) for a in self )
+
+    def apply_distributive_or_elementwise(self,attr,other):
+        distributive = isinstance(other,Number)
+        if not distributive: assert len(tuple(other))==2
+        return self.apply_distributive(attr,other) if distributive else self.apply_elementwise(attr,other)
         
-    def __radd__(self,other):
-        return self.__add__(other)
-        
-    def __sub__(self,other):
-        return Pos(self.x-other[0],self.y-other[1])
-
-    def __rsub__(self,other):
-        return Pos(other[0]-self.x,other[1]-self.y)
-
-    def __mul__(self,other):
-        iter_args = (other, other) if isinstance(other,Number) else other
-        return Pos(self.x*iter_args[0],self.y*iter_args[1])
-
-    def __div__(self,other):
-        iter_args = (other, other) if isinstance(other,Number) else other
-        return Pos(self.x/iter_args[0],self.y/iter_args[1])
+    # def __add__(self,other):
+    #     return Pos(self.x+other[0],self.y+other[1])
+    #     
+    # def __radd__(self,other):
+    #     return self.__add__(other)
+    #     
+    # def __sub__(self,other):
+    #     return Pos(self.x-other[0],self.y-other[1])
+    # 
+    # def __rsub__(self,other):
+    #     return Pos(other[0]-self.x,other[1]-self.y)
+    # 
+    # def __mul__(self,other):
+    #     iter_args = (other, other) if isinstance(other,Number) else other
+    #     return Pos(self.x*iter_args[0],self.y*iter_args[1])
+    # 
+    # def __div__(self,other):
+    #     iter_args = (other, other) if isinstance(other,Number) else other
+    #     return Pos(self.x/iter_args[0],self.y/iter_args[1])
     
     def __len__(self):
         return 2
@@ -53,8 +72,8 @@ class Pos:
     def __eq__(self,other):
         return len(other)==2 and self[0]==other[0] and self[1]==other[1]
         
-    # def __ne__(self,other):
-    #     return not self==other
+    def __ne__(self,other):
+        return not self==other
 
 class Struct:
     pass
