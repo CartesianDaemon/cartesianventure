@@ -79,17 +79,27 @@ class Frontend:
 
     def get_default_tile_size(self):
         return 64,64
+        
+    def get_tile_from_screen_coords(self,pos):
+        off_x, off_y = self.get_screen_padding()[0:2]
+        x,y = pos[0]-off_x,pos[1]-off_y
+        tile_w, tile_h = self.get_default_tile_size()
+        return (x/tile_w,y/tile_h )
+
+    def get_screen_from_tile_coords(self,x,y):
+        off_x, off_y = self.get_screen_padding()[0:2]
+        tile_w, tile_h = self.get_default_tile_size()
+        return (off_x+x*tile_w, off_y+y*tile_h )
 
     def draw_all(self):
         self.screen.blit(self.background, (0, 0))
         tile_width, tile_height = self.get_default_tile_size()
-        off_x, off_y = self.get_screen_padding()[0:2]
         for x,y,map_square in self.backend.get_mapsquares_by_rows():
             for obj in map_square.get_combined_lst():
                 assert obj is not None
                 tile_surface = obj.get_surface(x,y,tile_width,tile_height,obj.context)
-                self.screen.blit( tile_surface, (off_x + tile_width*x,
-                                                 off_y + tile_height*y + (tile_height-tile_surface.get_height()) ) )
+                screen_x, screen_y = self.get_screen_from_tile_coords(x,y)
+                self.screen.blit( tile_surface, (screen_x, screen_y + (tile_height-tile_surface.get_height()) ) )
             
     def handle_and_draw_menu(self):
         if self.following_with_transitive_verb:
@@ -107,7 +117,7 @@ class Frontend:
             self.last_mouse_in_menu_time = pygame.time.get_ticks()
         if self.menu_pos:
             self.draw_menu(*self.menu_pos)
-        
+
     def handle_event(self, event):
         if log_file: # and event.type in (MOUSEBUTTONDOWN,MOUSEBUTTONUP,MOUSEMOTION,QUIT,KEYDOWN):
             my_event = Struct()
@@ -117,9 +127,7 @@ class Frontend:
             pickle.dump(my_event,log_file)
             event = my_event # test it works before we try loading from file
         if event.type in (MOUSEBUTTONDOWN,MOUSEBUTTONUP,MOUSEMOTION):
-            tile_x, tile_y = (xy / tile_wh for xy, tile_wh in zip(event.pos,self.get_default_tile_size()))
-            # tile_base = self.backend.get_map()[tile_y][tile_x].get_obj()
-            # tile_obj = self.backend.get_obj_map().get_obj_at(tile_x,tile_y)
+            tile_x, tile_y = self.get_tile_from_screen_coords(event.pos)
             curr_obj = self.backend.get_obj_at(tile_x,tile_y)
         if (event.type == QUIT) or (event.type == KEYDOWN and event.key == K_F4 and event.mod&KMOD_ALT ):
             return 'quit'
@@ -182,7 +190,6 @@ class Frontend:
                 # self.last_mouse_obj = tile_obj or tile_base
     
     def draw_menu(self,x,y):
-        r1 = Rect(x-20,y-20,40,40)
         verb_width , verb_height = 120 , 20
         undo_width, undo_height = 180, verb_height
         verb_vpadding = 10
@@ -245,8 +252,16 @@ class Frontend:
             hit_rect_struct.redo_event = redo_event
             hit_rect_struct.hit_rect = r_redo
             self.menu_hit_rects.append(hit_rect_struct)
-            
-        self.menu_rects = ( r1, unionall(hit_rect_struct.hit_rect for hit_rect_struct in self.menu_hit_rects) )
+
+        # Menu rects
+        #
+        # Menu rects define area where mouse doesn't cause menu to disappear
+        # Includes area of menu, slight border, area around mouse, and whole tile
+        r_courtesy_area = Rect(x-20,y-20,40,40)
+        tile_x,tile_y = self.get_tile_from_screen_coords((x,y))
+        r_tile = Rect(self.get_screen_from_tile_coords(tile_x,tile_y),self.get_default_tile_size())
+        r_whole_menu = unionall(hit_rect_struct.hit_rect for hit_rect_struct in self.menu_hit_rects)
+        self.menu_rects = ( r_courtesy_area, r_tile, r_whole_menu.inflate(15,15) )
     
     def draw_transitive_menu(self,x,y):
         text = txtlib.Text((150,20), 'freesans')
