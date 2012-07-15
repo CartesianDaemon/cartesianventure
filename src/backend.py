@@ -41,25 +41,26 @@ class Backend:
         print "REDO"
 
     def _do_rule(self,rule,arg_objs):
-        new_obj_keys = rule.out_obj_keys
+        new_obj_packs = rule.out_obj_packs
         event = Event()
         event.verb = rule.verb
         event.old_objs = []
         event.new_objs = []
         event.other_prereqs = []
         event.sentence = arg_objs[0].get_verb_sentence_ncase(rule.verb,*arg_objs[1:])
-        for i,new_key in enumerate(new_obj_keys):
+        for i,new_pack in enumerate(new_obj_packs):
             assert i < len(arg_objs) # TODO: Create completely new objects, eg. wood shavings
             old_obj = arg_objs[i]
-            if new_key == '_pass':
+            if new_pack == '_pass':
                 old_obj.used_in_events_past.append(event)
                 event.other_prereqs.append(old_obj.copy())
-            elif new_key == '_del':
+            elif new_pack == '_del':
                 old_obj.used_in_events_past.append(event)
                 self.remove_obj(old_obj)
                 event.old_objs.append(old_obj.copy())
             else:
-                new_obj = self.curr_room.defs[new_key].copy()
+                new_obj = self.curr_room.defs[new_pack.key].copy()
+                new_obj.set_state(new_pack.state)
                 new_obj.created_by_event = [event]
                 old_obj.used_in_events_past.append(event)
                 event.old_objs.append(old_obj.copy())

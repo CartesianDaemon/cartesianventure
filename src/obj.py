@@ -35,7 +35,10 @@ class Verb:
                 sentence += "..."
         return sentence
 
-class Obj():
+class Pack(Bunch):
+    pass
+        
+class Obj:
     def __init__(self,name,short_desc="",examine_text="",graphic_source=None,transparent=False):
         # Object descriptions
         self.key='' # set later by add_obj_templates
@@ -73,8 +76,11 @@ class Obj():
             self.__dict__[prop]=val
         return self
 
-    def packed():
-        return (self.key,self.state)
+    def pack(self):
+        return Pack(key=self.key,state=self.state)
+        
+    def set_state(self,state): # From pack
+        self.state = state
     
     def get_context(self):
         return self.context
