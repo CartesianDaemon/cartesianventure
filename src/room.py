@@ -1,6 +1,8 @@
 # Internal modules
 from src.helpers import *
-from src.obj import Obj
+from src.obj import Obj, make_objs
+from src.rules import Rules, Rule
+from map import Map, ObjMap
 
 prop_defaults = Bunch(
     pickable =   Bunch(moveable=True , pickable=True , hoverable=True , can_support=False, passable=True  ),
@@ -12,4 +14,20 @@ prop_defaults = Bunch(
 )
 
 class Room:
-    pass
+    def __init__(self):
+        self.rules = Rules()
+        self.map = Map()
+        self.defs = Bunch()
+
+    def add_rule(self,*args,**kwargs):
+        self.rules.add_rule(*args,**kwargs)
+        
+    def create_obj_at(self,*args,**kwargs):
+        self.init_obj_map.create_at(*args,**kwargs)
+        
+    def make_map_from_key(self,*args,**kwargs):
+        self.map.make_map_from_key(*args,**kwargs)
+        
+    def make_objs(self,*args, **kwargs):
+        self.defs.update( make_objs(*args,**kwargs) )
+

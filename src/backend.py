@@ -12,21 +12,11 @@ class Backend:
         self.rules = Rules()
 
     def load(self,module):
-        room = data.__dict__[module];
-        self.defs.update(room.defs)
-        self.rules.update(room.rules)
-        self.map = Map()
-        room.char_map = room.init_map_str.splitlines()
-        self.map.map = [[self.base_layers_from_char(char,room,x,y)
-                            for x,char in enumerate(line)] for y,line in enumerate(room.char_map)]
-        self.obj_map = room.init_obj_map
-    
-    def base_layers_from_char(self,char,room,x,y):
-        objs = room.base_layers_from_char(char,room.char_map,x,y).copy()
-        for obj in objs.get_lst():
-            obj.x = x
-            obj.y = y
-        return objs
+        rm = data.__dict__[module].room
+        self.defs.update(rm.defs)
+        self.rules.update(rm.rules)
+        self.map = rm.map
+        self.obj_map = rm.init_obj_map
     
     def do(self,verb,*arg_objs):
         print (verb,)+tuple(obj.name for obj in arg_objs)

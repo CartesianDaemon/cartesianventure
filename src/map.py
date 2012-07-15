@@ -36,7 +36,18 @@ class Layers:
 class Map:
     def __init__(self):
         self.contexts = None
-        
+    
+    def make_map_from_key(self,init_map_str,charkey_func):
+        char_map = init_map_str.splitlines()
+        self.map = [[self._charkey(char,charkey_func,x,y) for x,char in enumerate(line)] for y,line in enumerate(char_map)]
+
+    def _charkey(self,char,charkey_func,x,y):
+        obj_layers = charkey_func(char,x,y).copy()
+        for obj in obj_layers.get_lst():
+            obj.x = x
+            obj.y = y
+        return obj_layers
+
     def get_contexts(self):
         if self.contexts is None:
             self.contexts = [ [ get_context_at(x,y,layers.get_obj()) for x,layers in enumerate(line) ]
