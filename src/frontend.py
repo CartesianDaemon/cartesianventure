@@ -207,47 +207,56 @@ class Frontend:
         undo_width, undo_height = 180, verb_height
         verb_vstride = verb_height+verb_spacing
 
-        verb_list = self.menu_obj.get_verb_sentences_initcap()
+        verb_list = ( (sentence, dict(verb=verb)) for verb, sentence in self.menu_obj.get_verb_sentences_initcap() )
         
         self.menu_hit_rect_structs = self.draw_and_get_hit_rect_structs(
-                                        verb_list, x_y + (+0,+20),self.menu_hit_idx,render_menu_defaults)
+                                        verb_list, self.menu_hit_idx,render_menu_defaults, topleft=x_y + (+0,+20) )
 
-        # undo_sentences = []
-        # 
-        # if self.menu_obj.get_undoable_events():
-        #     undo_sentences.append( ("_undo", "Undo " + undo_event.event_text_ncase()) )
-                                        
+        undo_list = []
+        
         if self.menu_obj.get_undoable_events():
             undo_event = self.menu_obj.get_undoable_events()[-1]
-            text = txtlib.Text((undo_width, undo_height), 'freesans')
-            text.text = "Undo " + undo_event.event_text_ncase()
-            text.update()
-            r_undo = text.area.get_rect().move(x+verb_offset_x-undo_width-5, y+verb_offset_y)
-            if (self.menu_hit_idx == len(self.menu_hit_rect_structs)):
-                r_undo = r_undo.move(2,1)
-            self.screen.blit(text.area, r_undo.topleft)
-            #r_undos.h += verb_vstride
-            hit_rect_struct = Struct()
-            hit_rect_struct.verb = '_undo'
-            hit_rect_struct.undo_event = undo_event
-            hit_rect_struct.hit_rect = r_undo
-            self.menu_hit_rect_structs.append(hit_rect_struct)
-        
+            undo_list.append( ("Undo " + undo_event.event_text_ncase(), dict(verb='_undo', undo_event = undo_event ) ) )
+                                        
         if self.menu_obj.get_redoable_events():
             redo_event = self.menu_obj.get_redoable_events()[-1]
-            text = txtlib.Text((undo_width, undo_height), 'freesans')
-            text.text = "Redo " + redo_event.event_text()
-            text.update()
-            r_redo = text.area.get_rect().move(x+verb_offset_x-undo_width-5, y+verb_offset_y+verb_spacing)
-            if (self.menu_hit_idx == len(self.menu_hit_rect_structs)):
-                r_redo = r_redo.move(2,1)
-            self.screen.blit(text.area, r_redo.topleft)
-            #undos.h += verb_vstride
-            hit_rect_struct = Struct()
-            hit_rect_struct.verb = '_redo'
-            hit_rect_struct.redo_event = redo_event
-            hit_rect_struct.hit_rect = r_redo
-            self.menu_hit_rect_structs.append(hit_rect_struct)
+            undo_list.append( ("Redo " + redo_event.event_text_ncase(), dict(verb='_redo', redo_event = redo_event ) ) )
+
+        undo_hit_idx = self.menu_hit_idx - len(self.menu_hit_rect_structs) if self.menu_hit_idx else None
+        self.menu_hit_rect_structs.extend( self.draw_and_get_hit_rect_structs(
+                                           undo_list, undo_hit_idx, render_menu_defaults, topright=x_y + (-5,+20) ) )
+
+        # if self.menu_obj.get_undoable_events():
+        #     undo_event = self.menu_obj.get_undoable_events()[-1]
+        #     text = txtlib.Text((undo_width, undo_height), 'freesans')
+        #     text.text = "Undo " + undo_event.event_text_ncase()
+        #     text.update()
+        #     r_undo = text.area.get_rect().move(x+verb_offset_x-undo_width-5, y+verb_offset_y)
+        #     if (self.menu_hit_idx == len(self.menu_hit_rect_structs)):
+        #         r_undo = r_undo.move(2,1)
+        #     self.screen.blit(text.area, r_undo.topleft)
+        #     #r_undos.h += verb_vstride
+        #     hit_rect_struct = Struct()
+        #     hit_rect_struct.verb = '_undo'
+        #     hit_rect_struct.undo_event = undo_event
+        #     hit_rect_struct.hit_rect = r_undo
+        #     self.menu_hit_rect_structs.append(hit_rect_struct)
+        # 
+        # if self.menu_obj.get_redoable_events():
+        #     redo_event = self.menu_obj.get_redoable_events()[-1]
+        #     text = txtlib.Text((undo_width, undo_height), 'freesans')
+        #     text.text = "Redo " + redo_event.event_text()
+        #     text.update()
+        #     r_redo = text.area.get_rect().move(x+verb_offset_x-undo_width-5, y+verb_offset_y+verb_spacing)
+        #     if (self.menu_hit_idx == len(self.menu_hit_rect_structs)):
+        #         r_redo = r_redo.move(2,1)
+        #     self.screen.blit(text.area, r_redo.topleft)
+        #     #undos.h += verb_vstride
+        #     hit_rect_struct = Struct()
+        #     hit_rect_struct.verb = '_redo'
+        #     hit_rect_struct.redo_event = redo_event
+        #     hit_rect_struct.hit_rect = r_redo
+        #     self.menu_hit_rect_structs.append(hit_rect_struct)
 
         # Menu rects
         #
@@ -260,22 +269,25 @@ class Frontend:
         r_whole_menu = unionall(hit_rect_struct.hit_rect for hit_rect_struct in self.menu_hit_rect_structs)
         self.menu_rects = ( r_courtesy_area, r_whole_menu.inflate(15,15) )
 
-    def draw_and_get_hit_rect_structs(self,sentences,next_pos,selected_idx=-1,render_text_props={}):
+    def draw_and_get_hit_rect_structs(self,sentences,selected_idx=-1,render_text_props={},topleft=None,topright=None):
         hit_rect_structs = []
         vspacing = 10
         selected_props = merge(render_text_props,render_selected)
+        if not sentences : return hit_rect_structs
         
-        for idx,(verb,sentence) in enumerate(sentences):
+        for idx,(sentence,d) in enumerate(sentences):
             hit_rect_struct = Struct()
             props = render_text_props if idx != selected_idx else selected_props
             hit_rect_struct.render_obj = render_text(sentence, **props)
-            hit_rect_struct.verb = verb
+            # hit_rect_struct.verb = verb
+            for k,v in d.iteritems(): setattr(hit_rect_struct,k,v)
             hit_rect_structs.append(hit_rect_struct)
 
-        verb_menu_width = max( hit_rect_struct.render_obj.get_size().x for hit_rect_struct in hit_rect_structs )
-
+        menu_width = max( hit_rect_struct.render_obj.get_size().x for hit_rect_struct in hit_rect_structs )
+        next_pos = topleft if topleft is not None else topright - (menu_width,0)
+        
         for hit_rect_struct in hit_rect_structs:
-            hit_rect_struct.render_obj.extend_width_to(verb_menu_width)
+            hit_rect_struct.render_obj.extend_width_to(menu_width)
             hit_rect_struct.render_obj.blit_to( self.screen, next_pos )
             hit_rect_struct.hit_rect = Rect( next_pos, hit_rect_struct.render_obj.get_size() )
             next_pos.y += hit_rect_struct.hit_rect.h + vspacing
