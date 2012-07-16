@@ -196,9 +196,8 @@ class Frontend:
             x_y = x,y = tile_pos + self.get_default_tile_size() / 2
         else:
             x_y = x,y = mouse_pos
-        verb_spacing = verb_vpadding = 10
+        verb_spacing = 10
         verb_offset_x, verb_offset_y = +0,+20
-        verb_menu_next_pos = x_y + (+0,+20)
 
         short_desc = self.menu_obj.get_short_desc()
         if short_desc:
@@ -206,31 +205,12 @@ class Frontend:
 
         verb_width , verb_height = 120 , 20
         undo_width, undo_height = 180, verb_height
-        verb_vstride = verb_height+verb_vpadding
+        verb_vstride = verb_height+verb_spacing
 
-        self.menu_hit_rect_structs = []
-        verb_menu_hit_rect_structs = []
         verb_list = self.menu_obj.get_verb_sentences_initcap()
-        for idx,(verb,sentence) in enumerate(verb_list):
-            # text = txtlib.Text((verb_width, verb_height), 'freesans')
-            # text.text = sentence
-            # text.update()
-            # self.screen.blit(text.area, r_verb.topleft)
-            # r_verb = text.area.get_rect().move(x+verb_offset_x, y+verb_offset_y+verb_vstride*idx)
-            hit_rect_struct = Struct()
-            selected = idx == self.menu_hit_idx
-            hit_rect_struct.render_obj = render_text(sentence, **render_menu_defaults)
-            hit_rect_struct.verb = verb
-            verb_menu_hit_rect_structs.append(hit_rect_struct)
-
-        verb_menu_width = max( hit_rect_struct.render_obj.get_size().x for hit_rect_struct in verb_menu_hit_rect_structs )
-
-        for hit_rect_struct in verb_menu_hit_rect_structs:
-            hit_rect_struct.render_obj.extend_width_to(verb_menu_width)
-            hit_rect_struct.render_obj.blit_to( self.screen, verb_menu_next_pos )
-            hit_rect_struct.hit_rect = Rect( verb_menu_next_pos, hit_rect_struct.render_obj.get_size() )
-            verb_menu_next_pos.y += hit_rect_struct.hit_rect.h + verb_spacing
-            self.menu_hit_rect_structs.append(hit_rect_struct)
+        
+        self.menu_hit_rect_structs = self.draw_and_get_hit_rect_structs(
+                                        verb_list,x_y + (+0,+20),self.menu_hit_idx,render_menu_defaults)
 
         if self.menu_obj.get_undoable_events():
             undo_event = self.menu_obj.get_undoable_events()[-1]
@@ -253,7 +233,7 @@ class Frontend:
             text = txtlib.Text((undo_width, undo_height), 'freesans')
             text.text = "Redo " + redo_event.event_text()
             text.update()
-            r_redo = text.area.get_rect().move(x+verb_offset_x-undo_width-5, y+verb_offset_y+verb_vstride)
+            r_redo = text.area.get_rect().move(x+verb_offset_x-undo_width-5, y+verb_offset_y+verb_spacing)
             if (self.menu_hit_idx == len(self.menu_hit_rect_structs)):
                 r_redo = r_redo.move(2,1)
             self.screen.blit(text.area, r_redo.topleft)
@@ -274,7 +254,28 @@ class Frontend:
             r_courtesy_area = Rect(tile_pos,self.get_default_tile_size())
         r_whole_menu = unionall(hit_rect_struct.hit_rect for hit_rect_struct in self.menu_hit_rect_structs)
         self.menu_rects = ( r_courtesy_area, r_whole_menu.inflate(15,15) )
-    
+
+    def draw_and_get_hit_rect_structs(self,sentences,next_pos,selected_idx=-1,render_text_props={}):
+        hit_rect_structs = []
+        vspacing = 10
+        
+        for idx,(verb,sentence) in enumerate(sentences):
+            selected = idx == selected_idx
+            hit_rect_struct = Struct()
+            hit_rect_struct.render_obj = render_text(sentence, **render_text_props)
+            hit_rect_struct.verb = verb
+            hit_rect_structs.append(hit_rect_struct)
+
+        verb_menu_width = max( hit_rect_struct.render_obj.get_size().x for hit_rect_struct in hit_rect_structs )
+
+        for hit_rect_struct in hit_rect_structs:
+            hit_rect_struct.render_obj.extend_width_to(verb_menu_width)
+            hit_rect_struct.render_obj.blit_to( self.screen, next_pos )
+            hit_rect_struct.hit_rect = Rect( next_pos, hit_rect_struct.render_obj.get_size() )
+            next_pos.y += hit_rect_struct.hit_rect.h + vspacing
+        
+        return hit_rect_structs
+        
     def draw_transitive_menu(self,pos):
         msg = self.menu_obj.get_verb_sentence_initcap(self.following_with_transitive_verb,
                                                       *self.transitive_verb_putative_objects)
