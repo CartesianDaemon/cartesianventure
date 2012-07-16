@@ -210,8 +210,13 @@ class Frontend:
         verb_list = self.menu_obj.get_verb_sentences_initcap()
         
         self.menu_hit_rect_structs = self.draw_and_get_hit_rect_structs(
-                                        verb_list,x_y + (+0,+20),self.menu_hit_idx,render_menu_defaults)
+                                        verb_list, x_y + (+0,+20),self.menu_hit_idx,render_menu_defaults)
 
+        # undo_sentences = []
+        # 
+        # if self.menu_obj.get_undoable_events():
+        #     undo_sentences.append( ("_undo", "Undo " + undo_event.event_text_ncase()) )
+                                        
         if self.menu_obj.get_undoable_events():
             undo_event = self.menu_obj.get_undoable_events()[-1]
             text = txtlib.Text((undo_width, undo_height), 'freesans')
@@ -258,11 +263,12 @@ class Frontend:
     def draw_and_get_hit_rect_structs(self,sentences,next_pos,selected_idx=-1,render_text_props={}):
         hit_rect_structs = []
         vspacing = 10
+        selected_props = merge(render_text_props,render_selected)
         
         for idx,(verb,sentence) in enumerate(sentences):
-            selected = idx == selected_idx
             hit_rect_struct = Struct()
-            hit_rect_struct.render_obj = render_text(sentence, **render_text_props)
+            props = render_text_props if idx != selected_idx else selected_props
+            hit_rect_struct.render_obj = render_text(sentence, **props)
             hit_rect_struct.verb = verb
             hit_rect_structs.append(hit_rect_struct)
 
@@ -321,6 +327,7 @@ Click to continue...
 
 render_desc_defaults = dict(xpadding=3, ypadding=1, font_size=20, font_col=(255,255,255),back_col=(0,0,0), back_alpha=128)
 render_menu_defaults = dict(xpadding=5,ypadding=5,font_size=16,font_col=(0,0,0),back_col=(255,255,255),back_alpha=None)
+render_selected = dict(font_col=(255,0,0))
 
 class render_text:
     def __init__(self,msg,xpadding=0,ypadding=0,font_size=16,font_col=(0,0,0),back_col=(255,255,255),back_alpha=None):

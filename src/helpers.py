@@ -78,10 +78,17 @@ class Pos:
 class Struct:
     pass
     
-def merge(*args):
+def add_dicts(*arg):
     ret = Bunch()
     for k,v in chain.from_iterable(d.iteritems() for d in args):
         assert k not in ret
+        ret[k] = v
+    return ret
+    
+def merge(*args):
+    ret = Bunch()
+    for k,v in chain.from_iterable(d.iteritems() for d in args):
+        # assert k not in ret
         ret[k] = v
     return ret
     
