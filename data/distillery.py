@@ -38,6 +38,19 @@ room.add_obj_templates( default_props = prop_defaults.wall,
                                     ),transparent='atbottomofscreen'),
 )
 
+# TODO: Move to separate character definition file
+room.add_obj_templates( default_props = prop_defaults.character,
+    marzie            = Obj("wall",  graphic_source=ContextualGraphicSource(
+                                    x  = GraphicSource("data/img_circ/VILINT.bmp",160, 41,40,120,colorkey='topleft'),
+                                    lr = GraphicSource("data/img_circ/VILINT.bmp",160, 41,40,120,colorkey='topleft',reps=2),
+                                    tb = GraphicSource("data/img_circ/VILINT.bmp", 40,201,40,120,colorkey='topleft'),
+                                    tl = GraphicSource("data/img_circ/VILINT.bmp",440, 41,40,120,colorkey='topleft'),
+                                    tr = GraphicSource("data/img_circ/VILINT.bmp",545, 41,40,120,colorkey='topleft'),
+                                    bl = GraphicSource("data/img_circ/VILINT.bmp",345, 41,40,120,colorkey='topleft'),
+                                    br = GraphicSource("data/img_circ/VILINT.bmp", 40, 41,40,120,colorkey='topleft'),
+                                    ) ),
+)
+
 room.add_obj_templates( default_props = prop_defaults.fixed,
     well            = Obj("well", graphic_source=GraphicSource("data/img_test/well.png",0,0,128,128,colorkey='topleft')),
 )

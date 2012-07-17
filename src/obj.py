@@ -66,6 +66,7 @@ class Obj:
         self.hoverable = None
         self.can_support = None
         self.walkable = None
+        self.character = None
     
     #TODO: delete this
     def copy(self):

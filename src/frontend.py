@@ -94,10 +94,9 @@ class Frontend:
 
     def draw_all(self):
         self.screen.blit(self.background, (0, 0))
-        for x, y, map_square in enumerate_2d( self.backend.get_mapsquares_by_rows() ):
+        for x, y, obj_tuple in enumerate_2d( self.backend.get_tuples_by_rows() ):
             tile_screen_pos = self.get_screen_from_tile_coords((x,y))
-            for obj in map_square.get_combined_lst():
-                assert obj is not None
+            for obj in obj_tuple:
                 tile_surface = obj.get_surface( self.get_default_tile_size() )
                 blit_pos = tile_screen_pos + ( 0, self.get_default_tile_size().y-tile_surface.get_height() )
                 self.screen.blit( tile_surface, blit_pos )
