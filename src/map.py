@@ -1,6 +1,5 @@
 # Internal modules
 from src.helpers import *
-from src.obj import make_copy
 
 class MapSquare:
     def __init__(self,base_layers,obj_layers):
@@ -15,9 +14,7 @@ class MapSquare:
 
 class Layers:
     def __init__(self,*init_objs):
-        # Copy of initial layers is necessary because we assign
-        # coords to object, and object may or may not exist elsewhere
-        self.lst = [ make_copy(obj) for obj in init_objs]
+        self.lst = list(init_objs)
         self.obj = self.lst[-1] if len(self.lst)>=1 else None
         
     def get_lst(self):
@@ -42,15 +39,11 @@ class Map:
     def __init__(self):
         self.obj_map = None
     
-    def make_map_from_key(self,init_map_str,charkey_func):
-        char_map = init_map_str.splitlines()
-        self.map_squares = [ [ None for _ in row ] for row in char_map]
-        for x,y,char in enumerate_2d(char_map):
-            base_layers = Layers(*charkey_func(char,x,y))
-            self.map_squares[y][x] = MapSquare( base_layers, Layers() )
-            for obj in self.map_squares[y][x].get_combined_lst():
-                obj.x = x
-                obj.y = y
+    def make_map_from_tuples(self,init_map_tuples):
+        self.map_squares = [ [ MapSquare( Layers(*tup), Layers() ) for tup in row ] for row in init_map_tuples]
+        for x,y,map_square in enumerate_2d(self.map_squares):
+            for obj in map_square.get_combined_lst():
+                obj.x, obj.y = x, y
         self.generate_contexts()
 
     def generate_contexts(self):

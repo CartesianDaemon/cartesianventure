@@ -12,7 +12,7 @@
 
 from src.room_definition import *
 
-room = Room()
+room = RoomDefinition()
 
 ##############################################################
 #
@@ -53,7 +53,7 @@ init_map_str = """\
 ###############
 """
 
-def base_layers_from_char(char,x,y):
+def base_tuples_from_char(char,x,y):
     if char=='#':
         if x>0:
             return (room.defs.floorboards, room.defs.wall)
@@ -66,7 +66,7 @@ def base_layers_from_char(char,x,y):
     if char=='W':
         return (room.defs.floorboards,room.defs.well)
 
-room.make_map_from_key(init_map_str, base_layers_from_char)
+room.make_map_from_key(init_map_str, base_tuples_from_char)
         
 ##############################################################
 #

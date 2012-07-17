@@ -18,19 +18,11 @@ class Room:
         self._rules = Rules()
         self.map = Map()
         self.defs = Bunch()
+        self.copies = 0
     
     def get_rules(self):
         return self._rules
 
-    def add_rule(self,*args,**kwargs):
-        self._rules.add_rule(*args,**kwargs)
-
-    def create_obj_at(self,x,y,obj):
-        self.map.create_at(x,y,obj)
-
-    def make_map_from_key(self,init_map_str,charkey_func):
-        self.map.make_map_from_key(init_map_str,charkey_func)
-        
-    def add_obj_templates(self,default_props={}, **kwargs):
-        self.defs.update( { key: obj.update(key=key,**default_props) for key, obj in kwargs.iteritems() } )
-
+    def copy(self):
+        # TODO: do actual copy
+        return self
