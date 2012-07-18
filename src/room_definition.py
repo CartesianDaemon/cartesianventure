@@ -1,6 +1,6 @@
 from src.room import Room
 from src.obj import Obj
-from src.graphic_source import GraphicSource, ContextualGraphicSource
+from src.graphic_source import BaseGraphic, CtxtGraphic, RandGraphic, AnimGraphic, TileFile
 from src.helpers import *
 
 prop_defaults = Bunch(

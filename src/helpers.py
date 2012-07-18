@@ -1,6 +1,7 @@
 # Standard modules
 from itertools import chain
 from numbers import Number
+import random
 
 class Bunch(dict):
     def __getattr__(self, attr):
@@ -78,7 +79,7 @@ class Pos:
 class Struct:
     pass
     
-def add_dicts(*arg):
+def add_dicts(*arg):    
     ret = Bunch()
     for k,v in chain.from_iterable(d.iteritems() for d in args):
         assert k not in ret
@@ -98,6 +99,11 @@ def merge_obj_ip(obj,**kwargs):
         ret.__dict__[k] = v
     return ret
 
+def hash_to_range(input, max):
+    # input is any hashable object
+    random.seed(input)
+    return random.randrange(max)
+    
 # class Maybe:
 #     def __init__(self,value=None):
 #         self.value = value

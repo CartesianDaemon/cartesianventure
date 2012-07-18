@@ -98,8 +98,7 @@ class Frontend:
             tile_screen_pos = self.get_screen_from_tile_coords((x,y))
             for obj in obj_tuple:
                 tile_surface = obj.get_surface( self.get_default_tile_size() )
-                blit_pos = tile_screen_pos + ( 0, self.get_default_tile_size().y-tile_surface.get_height() )
-                self.screen.blit( tile_surface, blit_pos )
+                tile_surface.blit_to( self.screen, tile_screen_pos )
             
     def handle_and_draw_menu(self):
         if self.following_with_transitive_verb:

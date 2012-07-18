@@ -4,7 +4,7 @@
 #
 # Added NotNone
 # Added splash screen
-# GraphicSource takes value from img_circ file
+# BaseGraphic takes value from img_circ file
 # Randomly chosen tiles for similar surfaces
 #
 # 10 July 2012

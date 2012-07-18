@@ -1,19 +1,44 @@
 # Standard modules
 import copy
-import random
 import pygame
 from pygame.locals import *
 
 # Internal modules
 from helpers import *
 
-class GraphicSource:
-    def __init__(self,filename,x=None,y=None,w=None,h=None,reps=1,colorkey=None):
+# TODO: Add helpful classes for files with freeform structure and with individual pics
+class TileFile:
+    def __init__(filename,w,h,xoff=0,yoff=0):
+        self.file_surface = pygame.image.load(self.filename)
+        self.w, self.h = w, h
+
+    def tile_surface_at(x,y,hpad=0,vpad=0,lpad=0,rpad=0,tpad=0,bpad=0):
+        surface = self.file_surface.subsurface( x, y, self.w+hpad*2+lpad+rpad, self.h+vpad*2+tpad+bpad )
+        surface.offset = (lpad+hpad,tpad+vpad)
+        return surface
+
+class BlitSurface(pygame.Surface):
+    def __init__(self,surface):
+        self.surface = surface
+        self.offset = Pos(0,0)
+        
+    def set_offset(self,pos):
+        self.offset = Pos(pos)
+        
+    def blit_to(self,target,pos):
+        target.blit(self.surface,pos-self.offset)
+        
+    def get_rect(self):
+        return self.surface.get_rect()
+        
+class BaseGraphic:
+    def __init__(self,filename,x=None,y=None,w=None,h=None,hreps=1,colorkey=None):
         self.filename = filename
         self.surfaces = ()
         self.first_subrect = NotNone(x) and Rect(x,y,w,h)
-        self.reps = reps
+        self.hreps = hreps
         self.colorkey = colorkey
+        self.cur_dst_size = None
 
     def load(self,size):
         self.surfaces = []
@@ -24,9 +49,8 @@ class GraphicSource:
         # w,h for tile image including possible overlay over tile to North
         w = size.x
         h = size.y * self.first_subrect.h / self.first_subrect.w
-        # stride = self.first_subrect.x + self.first_subrect.w
         stride = 2 * self.first_subrect.w
-        for rep in range(self.reps):
+        for rep in range(self.hreps):
             surface = file_surface
             if self.first_subrect is not None:
                 surface = surface.subsurface(self.first_subrect.move(stride*rep,0))
@@ -40,7 +64,7 @@ class GraphicSource:
                 surface.set_colorkey(colorkey, RLEACCEL)
             surface = surface.convert()
             self.surfaces.append(surface)
-        self.cur_size = self.surfaces[0].get_size()
+        self.cur_dst_size = size
         self.transparent_surfaces = None
         
     def _get_transparent_surfaces():
@@ -49,20 +73,28 @@ class GraphicSource:
             for surface in self._transparent_surfaces: surface.set_alpha(256,RLEACCEL)
         return self._transparent_surfaces
 
-    def get_surface(self,pos,size,context='',is_transparent=False):
-        if not self.surfaces or self.cur_size != size:
+    def get_surface(self,pos,size,context='',is_transparent=False, idx=0, **kwargs):
+        if not self.surfaces or self.cur_dst_size != size:
             self.load(size)
-        surfaces = self.surfaces if not is_transparent else self._get_transparent_surfaces()
-        return surfaces[self._get_surface_idx(pos)]
+        surface = BlitSurface( self.surfaces[idx] if not is_transparent else self._get_transparent_surfaces()[idx] )
+        surface.set_offset( surface.get_rect().size-Pos(size) )
+        return surface
 
-    def _get_surface_idx(self,pos):
-        if self.reps<=1:
-            return 0
-        else:
-            random.seed(pos[0]+pos[1])
-            return random.randrange(self.reps)
+class RandGraphic(BaseGraphic):
+    def __init__(self,*args,**kwargs):
+        BaseGraphic.__init__(self,*args,**kwargs)
+        
+    def get_surface(self,pos, *args,**kwargs):
+        return BaseGraphic.get_surface(self,pos,*args,idx=hash_to_range(pos,self.hreps),**kwargs)
 
-class ContextualGraphicSource:
+class AnimGraphic(BaseGraphic):
+    def __init__(self,*args,**kwargs):
+        BaseGraphic.__init__(self,*args,**kwargs)
+
+    def get_surface(self,pos, *args,**kwargs):
+        return BaseGraphic.get_surface(self,pos,*args,idx=int(kwargs['frac']*self.hreps),**kwargs)
+        
+class CtxtGraphic:
     def __init__(self,**kwargs):
         self.tiles = kwargs
     
