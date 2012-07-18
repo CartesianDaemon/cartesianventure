@@ -33,8 +33,9 @@ class RoomDefinition:
 
     def make_map_from_key(self,init_map_str,charkey_func):
         char_map = init_map_str.splitlines()
-        tuple_at = lambda char,x,y : ( obj.copy() for obj in charkey_func(char,x,y) )
+        tuple_at = lambda char,x,y : tuple( obj.copy() for obj in charkey_func(char,x,y) )
         init_map_tuples = ( ( tuple_at(char,x,y) for x, char in enumerate(line) ) for y,line in enumerate(char_map) ) 
+        # assert all( len(tup)<=2 for line in init_map_tuples for tup in line ) # assuming everything (floor) or (floor, wall), if not need a slightly better initialisation
         self.room.map.make_map_from_tuples(init_map_tuples)
 
     def add_obj_templates(self,default_props={}, **kwargs):

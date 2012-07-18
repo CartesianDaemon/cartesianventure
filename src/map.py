@@ -1,16 +1,30 @@
+# Standard modules
+from collections import OrderedDict
+from itertools import chain
+
 # Internal modules
 from src.helpers import *
 
 class MapSquare:
-    def __init__(self,base_layers,obj_layers):
-        self.base_layers = base_layers
-        self.obj_layers = obj_layers
+    def __init__(self,floor_layers,obj_layers,char_layers,wall_layers):
+        self.strata = OrderedDict()
+        self.strata['floor_layers'] = floor_layers
+        self.strata['obj_layers'  ] = obj_layers
+        self.strata['char_layers' ] = char_layers
+        self.strata['wall_layers' ] = wall_layers
+    
+    # TODO: Refactor this into a general "add object at" functionality
+    def get_obj_layers(self):
+        return self.strata['obj_layers']
     
     def get_combined_mainobj(self):
-        return self.obj_layers.get_obj() or self.base_layers.get_obj()
+        # TODO: Do something different if top object isn't always "main" one, eg. overlay of smoke, water, etc
+        # TODO: Deal with empty square without crashing?
+        #return ( tuple(chain.from_iterable( stratum.get_obj_lst() for stratum in reversed(self.strata.values()) )) + (None,) )[0]
+        return ( stratum.get_obj() for stratum in reversed(self.strata.values()) if stratum.get_obj() ).next()
     
     def get_combined_lst(self):
-        return self.base_layers.get_lst() + self.obj_layers.get_lst()
+        return chain.from_iterable( stratum.get_lst() for stratum in self.strata.values() )
 
 class Layers:
     def __init__(self,*init_objs):
@@ -22,6 +36,9 @@ class Layers:
         
     def get_obj(self):
         return self.obj
+        
+    def get_obj_lst(self):
+        return self.obj or ()
         
     def set_obj(self, new_obj):
         assert len(self.lst) == 0
@@ -40,7 +57,7 @@ class Map:
         self.obj_map = None
     
     def make_map_from_tuples(self,init_map_tuples):
-        self.map_squares = [ [ MapSquare( Layers(*tup), Layers() ) for tup in row ] for row in init_map_tuples]
+        self.map_squares = [ [ MapSquare( Layers(tup[0]), Layers(), Layers(), Layers(*tup[1:2]) ) for tup in row ] for row in init_map_tuples]
         for x,y,map_square in enumerate_2d(self.map_squares):
             for obj in map_square.get_combined_lst():
                 obj.x, obj.y = x, y
@@ -67,24 +84,24 @@ class Map:
     def create_at(self,x,y,obj):
         obj.x = x
         obj.y = y
-        self.map_squares[y][x].obj_layers.set_obj(obj)
+        self.map_squares[y][x].get_obj_layers().set_obj(obj)
         
     def remove_obj(self,obj):
-        assert self.map_squares[obj.y][obj.x].obj_layers.lst == [obj]
-        self.map_squares[obj.y][obj.x].obj_layers.remove_all()
+        assert self.map_squares[obj.y][obj.x].get_obj_layers().lst == [obj]
+        self.map_squares[obj.y][obj.x].get_obj_layers().remove_all()
         obj.x = None
         
     def convert_obj(self,old_obj,new_obj):
-        assert self.map_squares[old_obj.y][old_obj.x].obj_layers.lst == [old_obj]
-        self.map_squares[old_obj.y][old_obj.x].obj_layers.remove_all()
-        self.map_squares[old_obj.y][old_obj.x].obj_layers.set_obj(new_obj)
+        assert self.map_squares[old_obj.y][old_obj.x].get_obj_layers().lst == [old_obj]
+        self.map_squares[old_obj.y][old_obj.x].get_obj_layers().remove_all()
+        self.map_squares[old_obj.y][old_obj.x].get_obj_layers().set_obj(new_obj)
         new_obj.x, new_obj.y = old_obj.x, old_obj.y
         old_obj.x = None
         
     def move_to(self,new_x,new_y,obj):
-        assert self.map_squares[obj.y][obj.x].obj_layers.lst == [obj]
-        self.map_squares[obj.y][obj.x].obj_layers.remove_all()
-        self.map_squares[new_y][new_x].obj_layers.set_obj(obj)
+        assert self.map_squares[obj.y][obj.x].get_obj_layers().lst == [obj]
+        self.map_squares[obj.y][obj.x].get_obj_layers().remove_all()
+        self.map_squares[new_y][new_x].get_obj_layers().set_obj(obj)
         obj.x, obj.y = new_x, new_y
 
     def get_mapsquare_at(self,x,y):
