@@ -94,9 +94,8 @@ class Backend:
     def get_obj_at(self,x,y):
         return self.curr_room.map.get_mapsquare_at(x,y).get_combined_mainobj()
     
-    def get_tuples_by_rows(self):
-        map_squares_by_rows = self.curr_room.map.get_mapsquares_by_rows()
-        return [ [ map_square.get_combined_lst() for map_square in row ] for row in map_squares_by_rows ]
+    def get_strata_by_rows(self):
+        return self.curr_room.map.get_strata_by_rows()
         
     def get_map_size(self):
         return self.curr_room.map.map_size()

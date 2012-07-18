@@ -108,7 +108,6 @@ class Map:
         assert self.is_in_map(x,y)
         return self.map_squares[y][x]
 
-    def get_mapsquares_by_rows(self):
-        return self.map_squares
-
-        
+    def get_strata_by_rows(self):
+        H = len(self.map_squares[0][0].strata)
+        return [ [ [ sq.strata.values()[i].get_lst() for sq in row ] for row in self.map_squares ] for i in range(H) ]

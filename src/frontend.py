@@ -94,11 +94,12 @@ class Frontend:
 
     def draw_all(self):
         self.screen.blit(self.background, (0, 0))
-        for x, y, obj_tuple in enumerate_2d( self.backend.get_tuples_by_rows() ):
-            tile_screen_pos = self.get_screen_from_tile_coords((x,y))
-            for obj in obj_tuple:
-                tile_surface = obj.get_surface( self.get_default_tile_size() )
-                tile_surface.blit_to( self.screen, tile_screen_pos )
+        for stratum in self.backend.get_strata_by_rows():
+            for x, y, obj_tuple in enumerate_2d( stratum ):
+                tile_screen_pos = self.get_screen_from_tile_coords((x,y))
+                for obj in obj_tuple:
+                    tile_surface = obj.get_surface( self.get_default_tile_size() )
+                    tile_surface.blit_to( self.screen, tile_screen_pos )
             
     def handle_and_draw_menu(self):
         if self.following_with_transitive_verb:
