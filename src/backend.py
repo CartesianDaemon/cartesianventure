@@ -7,6 +7,9 @@ import src.room_data as room_data
 class Backend:
     def __init__(self):
         self.rules = Rules()
+        self.curr_tock = {}
+        self.default_idle_tock = {}
+        self.pending_subactions = {}
 
     def load(self,filename):
         # TODO: need copy?
@@ -93,11 +96,16 @@ class Backend:
     
     def get_obj_at(self,x,y):
         return self.curr_room.map.get_mapsquare_at(x,y).get_combined_mainobj()
-    
-    def get_strata_by_rows(self):
-        return self.curr_room.map.get_strata_by_rows()
-        
-    def get_blit_surfaces(self, tile_size, window=Rect(0,0,15,7)):
+
+    def pop_tock(self):
+        ret = self.curr_tock
+        if self.pending_subactions:
+            raise NotImplementedError # TODO: pass next action to "do"
+        else:
+            self.curr_tock = self.default_idle_tock
+        return ret
+
+    def get_blit_surfaces(self, tock, tile_size, window=Rect(0,0,15,7)):
         blit_surfaces = []
         for stratum in self.curr_room.map.get_strata_by_rows():
             for row in stratum:

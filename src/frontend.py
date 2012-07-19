@@ -33,6 +33,11 @@ class Frontend:
         
         self.backend = Backend()
         self.backend.load(default_room)
+        
+        self.scene_begin_ticks = self.tock_begin_ticks = pygame.time.get_ticks()
+        self.curr_tock = self.backend.default_idle_tock
+        self.default_tock_duration = None
+        self.tock_duration = 0
 
         self.screen = pygame.display.set_mode( tuple(a*b+pad1+pad2 for a,b,pad1,pad2 in zip( self.backend.get_map_size(),
                                                                                             self.tile_size(),
@@ -78,6 +83,7 @@ class Frontend:
         for event in events:
             ret = self.handle_event(event)
             if ret == 'quit': return 'quit'
+        self.do_tock()
         self.draw_all()
         self.handle_and_draw_menu()
         pygame.display.flip()
@@ -92,15 +98,22 @@ class Frontend:
     def get_screen_from_tile_coords(self,pos):
         return self.get_screen_padding_lt() + pos * self.tile_size()
 
+    def is_idle_tock(self,tock):
+        return bool(tock)
+    
+    def do_tock(self):
+        ticks = pygame.time.get_ticks()
+        if ticks > self.tock_end_ticks():
+            self.curr_tock = self.backend.pop_tock()
+            self.tock_begin_ticks = ticks
+            self.tock_duration = self.default_tock_duration if not self.is_idle_tock(self.curr_tock) else None
+    
+    def tock_end_ticks(self):
+        return self.tock_begin_ticks + (self.tock_duration if not self.is_idle_tock(self.curr_tock) else 0)
+
     def draw_all(self):
         self.screen.blit(self.background, (0, 0))
-        # for stratum in self.backend.get_strata_by_rows():
-        #     for x, y, obj_tuple in enumerate_2d( stratum ):
-        #         tile_screen_pos = self.get_screen_from_tile_coords((x,y))
-        #         for obj in obj_tuple:
-        #             tile_surface = obj.get_surface( self.tile_size() )
-        #             tile_surface.blit_to( self.screen, tile_screen_pos )
-        for tile_surface in self.backend.get_blit_surfaces( self.tile_size() ):
+        for tile_surface in self.backend.get_blit_surfaces( self.curr_tock, self.tile_size() ):
             tile_surface.blit_to( self.screen, self.get_screen_padding_lt() )
             
     def handle_and_draw_menu(self):
