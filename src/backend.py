@@ -97,5 +97,16 @@ class Backend:
     def get_strata_by_rows(self):
         return self.curr_room.map.get_strata_by_rows()
         
+    def get_blit_surfaces(self, tile_size, window=Rect(0,0,15,7)):
+        blit_surfaces = []
+        for stratum in self.curr_room.map.get_strata_by_rows():
+            for row in stratum:
+                for obj_tuple in row:
+                    for obj in obj_tuple:
+                        blit_surface = obj.get_surface( tile_size )
+                        blit_surface.set_external_offset( obj.map_pos()*tile_size )
+                        blit_surfaces.append(blit_surface)
+        return blit_surfaces
+        
     def get_map_size(self):
         return self.curr_room.map.map_size()

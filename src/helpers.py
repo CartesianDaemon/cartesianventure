@@ -1,6 +1,7 @@
 # Standard modules
 from itertools import chain
 from numbers import Number
+from pygame import Rect
 import random
 
 class Bunch(dict):

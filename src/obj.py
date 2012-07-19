@@ -85,6 +85,9 @@ class Obj:
     
     def get_context(self):
         return self.context
+        
+    def map_pos(self):
+        return Pos(self.x,self.y)
     
     def get_surface(self,tile_size):
         is_transparent = self.transparent or self.transparent=='atbottomofscreen' and pos[1]==7 and 0 < pos[0] < 14

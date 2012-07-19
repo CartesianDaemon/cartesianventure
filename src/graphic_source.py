@@ -20,13 +20,17 @@ class TileFile:
 class BlitSurface(pygame.Surface):
     def __init__(self,surface):
         self.surface = surface
-        self.offset = Pos(0,0)
+        self.internal_offset = Pos(0,0)
+        self.external_offset = Pos(0,0)
         
-    def set_offset(self,pos):
-        self.offset = Pos(pos)
-        
+    def set_internal_offset(self,pos):
+        self.internal_offset = Pos(pos)
+
+    def set_external_offset(self,offset):
+        self.external_offset = Pos(offset)
+
     def blit_to(self,target,pos):
-        target.blit(self.surface,pos-self.offset)
+        target.blit(self.surface,pos-self.internal_offset+self.external_offset)
         
     def get_rect(self):
         return self.surface.get_rect()
@@ -77,7 +81,7 @@ class BaseGraphic:
         if not self.surfaces or self.cur_dst_size != size:
             self.load(size)
         surface = BlitSurface( self.surfaces[idx] if not is_transparent else self._get_transparent_surfaces()[idx] )
-        surface.set_offset( surface.get_rect().size-Pos(size) )
+        surface.set_internal_offset( surface.get_rect().size - Pos(size) )
         return surface
 
 class RandGraphic(BaseGraphic):

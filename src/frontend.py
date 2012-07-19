@@ -35,7 +35,7 @@ class Frontend:
         self.backend.load(default_room)
 
         self.screen = pygame.display.set_mode( tuple(a*b+pad1+pad2 for a,b,pad1,pad2 in zip( self.backend.get_map_size(),
-                                                                                            self.get_default_tile_size(),
+                                                                                            self.tile_size(),
                                                                                             self.get_screen_padding_lt(),
                                                                                             self.get_screen_padding_rb(),
                                                                                             ) ) )
@@ -83,23 +83,25 @@ class Frontend:
         pygame.display.flip()
         sys.stdout.flush()
 
-    def get_default_tile_size(self):
+    def tile_size(self):
         return Pos(64,64)
         
     def get_tile_from_screen_coords(self,pos):
-        return ( pos - self.get_screen_padding_lt() ) / self.get_default_tile_size()
+        return ( pos - self.get_screen_padding_lt() ) / self.tile_size()
 
     def get_screen_from_tile_coords(self,pos):
-        return self.get_screen_padding_lt() + pos * self.get_default_tile_size()
+        return self.get_screen_padding_lt() + pos * self.tile_size()
 
     def draw_all(self):
         self.screen.blit(self.background, (0, 0))
-        for stratum in self.backend.get_strata_by_rows():
-            for x, y, obj_tuple in enumerate_2d( stratum ):
-                tile_screen_pos = self.get_screen_from_tile_coords((x,y))
-                for obj in obj_tuple:
-                    tile_surface = obj.get_surface( self.get_default_tile_size() )
-                    tile_surface.blit_to( self.screen, tile_screen_pos )
+        # for stratum in self.backend.get_strata_by_rows():
+        #     for x, y, obj_tuple in enumerate_2d( stratum ):
+        #         tile_screen_pos = self.get_screen_from_tile_coords((x,y))
+        #         for obj in obj_tuple:
+        #             tile_surface = obj.get_surface( self.tile_size() )
+        #             tile_surface.blit_to( self.screen, tile_screen_pos )
+        for tile_surface in self.backend.get_blit_surfaces( self.tile_size() ):
+            tile_surface.blit_to( self.screen, self.get_screen_padding_lt() )
             
     def handle_and_draw_menu(self):
         if self.following_with_transitive_verb:
@@ -192,7 +194,7 @@ class Frontend:
     def draw_menu(self,mouse_pos):
         tile_pos = self.get_screen_from_tile_coords( self.get_tile_from_screen_coords(mouse_pos) )
         if self.draw_menu_around_tile_not_mouse:
-            x_y = x,y = tile_pos + self.get_default_tile_size() / 2
+            x_y = x,y = tile_pos + self.tile_size() / 2
         else:
             x_y = x,y = mouse_pos
         verb_spacing = 10
@@ -264,7 +266,7 @@ class Frontend:
         if self.draw_menu_around_tile_not_mouse:
             r_courtesy_area = Rect( x_y + (-20,-20), (40,40) )
         else:
-            r_courtesy_area = Rect(tile_pos,self.get_default_tile_size())
+            r_courtesy_area = Rect(tile_pos,self.tile_size())
         r_whole_menu = unionall(hit_rect_struct.hit_rect for hit_rect_struct in self.menu_hit_rect_structs)
         self.menu_rects = ( r_courtesy_area, r_whole_menu.inflate(15,15) )
 
