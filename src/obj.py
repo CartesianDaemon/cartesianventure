@@ -83,15 +83,16 @@ class Obj:
     def set_state(self,state): # From pack
         self.state = state
     
-    def get_context(self):
-        return self.context
+    def get_contexts(self):
+        return (self.context,)
         
     def map_pos(self):
         return Pos(self.x,self.y)
     
-    def get_surface(self,tile_size):
+    def get_surface(self,tile_size,tock_tuple=(),frac=0):
         is_transparent = self.transparent or self.transparent=='atbottomofscreen' and pos[1]==7 and 0 < pos[0] < 14
-        return self.graphic_source.get_surface( (self.x,self.y), tile_size, self.get_context(), is_transparent)
+        context_tuple = tock_tuple + self.get_contexts()
+        return self.graphic_source.get_surface( (self.x,self.y), tile_size, context_tuple, is_transparent)
         
     def is_hoverable(self):
         return self.hoverable;

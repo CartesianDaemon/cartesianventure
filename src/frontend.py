@@ -103,17 +103,25 @@ class Frontend:
     
     def do_tock(self):
         ticks = pygame.time.get_ticks()
-        if ticks > self.tock_end_ticks():
-            self.curr_tock = self.backend.pop_tock()
-            self.tock_begin_ticks = ticks
-            self.tock_duration = self.default_tock_duration if not self.is_idle_tock(self.curr_tock) else None
+        if self.tock_done(ticks):
+            new_tock = self.backend.pop_tock()
+            if not self.is_idle_tock(self.curr_tock) or not self.is_idle_tock(new_tock):
+                self.tock_begin_ticks = ticks
+                self.tock_duration = self.default_tock_duration if not self.is_idle_tock(self.curr_tock) else None
+            self.curr_tock = new_tock
     
-    def tock_end_ticks(self):
-        return self.tock_begin_ticks + (self.tock_duration if not self.is_idle_tock(self.curr_tock) else 0)
+    def tock_frac(self,ticks):
+        return (ticks - self.tock_begin_ticks)/self.tock_duration
+    
+    def tock_done(self, ticks):
+        if self.is_idle_tock(self.curr_tock):
+            return True
+        else:
+            return ticks >= self.tock_begin_ticks + self.tock_duration
 
     def draw_all(self):
         self.screen.blit(self.background, (0, 0))
-        for tile_surface in self.backend.get_blit_surfaces( self.curr_tock, self.tile_size() ):
+        for tile_surface in self.backend.get_blit_surfaces( self.curr_tock, self.tile_size(), self.tock_frac ):
             tile_surface.blit_to( self.screen, self.get_screen_padding_lt() )
             
     def handle_and_draw_menu(self):

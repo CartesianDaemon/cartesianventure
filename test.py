@@ -123,7 +123,7 @@ class TestBackend(unittest.TestCase):
         return self.backend_distillery.get_obj_at(x,y)
     
     def test_contexts(self):
-        self.assertEqual(self.obj_at(0,2).get_context(),'br' )
+        self.assertEqual(self.obj_at(0,2).get_contexts(),('br',) )
     
     def test_verblist(self):
         crucible = self.defs.crucible

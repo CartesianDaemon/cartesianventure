@@ -1,3 +1,5 @@
+from __future__ import division
+
 # Standard modules
 from itertools import chain
 from numbers import Number
@@ -47,27 +49,7 @@ class Pos:
         distributive = isinstance(other,Number)
         if not distributive: assert len(tuple(other))==2
         return self.apply_distributive(attr,other) if distributive else self.apply_elementwise(attr,other)
-        
-    # def __add__(self,other):
-    #     return Pos(self.x+other[0],self.y+other[1])
-    #     
-    # def __radd__(self,other):
-    #     return self.__add__(other)
-    #     
-    # def __sub__(self,other):
-    #     return Pos(self.x-other[0],self.y-other[1])
-    # 
-    # def __rsub__(self,other):
-    #     return Pos(other[0]-self.x,other[1]-self.y)
-    # 
-    # def __mul__(self,other):
-    #     iter_args = (other, other) if isinstance(other,Number) else other
-    #     return Pos(self.x*iter_args[0],self.y*iter_args[1])
-    # 
-    # def __div__(self,other):
-    #     iter_args = (other, other) if isinstance(other,Number) else other
-    #     return Pos(self.x/iter_args[0],self.y/iter_args[1])
-    
+            
     def __len__(self):
         return 2
     
@@ -137,7 +119,9 @@ def capitalize_first(str):
     ret = str[0].capitalize() + str[1:]
     return ret
     
-    
 def enumerate_2d(arr_2d):
     return ( (x, y, val) for y,line in enumerate(arr_2d) for x,val in enumerate(line) )
+
     
+def first(lst,default=None):
+    return chain(lst,default).next()

@@ -96,7 +96,7 @@ class AnimGraphic(BaseGraphic):
         BaseGraphic.__init__(self,*args,**kwargs)
 
     def get_surface(self,pos, *args,**kwargs):
-        return BaseGraphic.get_surface(self,pos,*args,idx=int(kwargs['frac']*self.hreps),**kwargs)
+        return BaseGraphic.get_surface(self,pos,*args,idx=int(frac*len(self.surfaces)),**kwargs)
         
 class CtxtGraphic:
     def __init__(self,**kwargs):
@@ -105,7 +105,8 @@ class CtxtGraphic:
     def load(self,*args):
         for gs in self.tiles: gs.load(*args)
         
-    def get_surface(self,pos,size,context,is_transparent):
-        tile = self.tiles.get(context,self.tiles['x'])
-        return tile.get_surface(pos,size,is_transparent)
+    def get_surface(self,pos,size,context_tuple,*args,**kwargs):
+        # tile = self.tiles.get(context,self.tiles['x'])
+        tile = first( self.tiles.get(context) for context in context_tuple ) or self.tiles['x']
+        return tile.get_surface(pos,size,*args,**kwargs)
 

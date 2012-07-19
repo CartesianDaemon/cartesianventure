@@ -105,7 +105,7 @@ class Backend:
             self.curr_tock = self.default_idle_tock
         return ret
 
-    def get_blit_surfaces(self, tock, tile_size, window=Rect(0,0,15,7)):
+    def get_blit_surfaces(self, tock, tile_size, window=Rect(0,0,15,7), frac=0):
         blit_surfaces = []
         for stratum in self.curr_room.map.get_strata_by_rows():
             for row in stratum:
