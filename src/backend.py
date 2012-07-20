@@ -110,7 +110,7 @@ class Backend:
         assert dir in 'lrud'
         self.curr_tock = {(self.player.x,self.player.y,1,1):dir}
 
-    def get_blit_surfaces(self, tock, tile_size, window=Rect(0,0,15,7), frac=0):
+    def get_blit_surfaces(self, tock, frac, tile_size, window=Rect(0,0,15,7)):
         blit_surfaces = []
         for stratum in self.curr_room.map.get_strata_by_rows():
             for row in stratum:

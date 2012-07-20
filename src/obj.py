@@ -91,10 +91,9 @@ class Obj:
     
     def get_surface(self,tile_size,tock,frac=0):
         is_transparent = self.transparent or self.transparent=='atbottomofscreen' and pos[1]==7 and 0 < pos[0] < 14
-        tock_tuple = (context for rect,context in tock.iteritems() if Rect(rect)) # .collidepoint(self.map_pos) 
-        context_tuple = chain( tock_tuple, self.get_contexts() )
-        if self.character:
-            print tuple(context_tuple)
+        tock_tuple = tuple(context for rect,context in tock.iteritems() if Rect(rect).collidepoint(self.x,self.y) )
+        if not tock_tuple: frac = 0
+        context_tuple = tock_tuple + self.get_contexts()
         return self.graphic_source.get_surface( (self.x,self.y), tile_size, context_tuple, is_transparent, frac=frac)
         
     def is_hoverable(self):

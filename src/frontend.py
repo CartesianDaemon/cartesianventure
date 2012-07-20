@@ -36,7 +36,7 @@ class Frontend:
         
         self.scene_begin_ticks = self.tock_begin_ticks = pygame.time.get_ticks()
         self.curr_tock = self.backend.default_idle_tock
-        self.default_tock_duration = 250
+        self.default_tock_duration = 500
         self.tock_duration = None
 
         self.screen = pygame.display.set_mode( tuple(a*b+pad1+pad2 for a,b,pad1,pad2 in zip( self.backend.get_map_size(),
@@ -113,8 +113,10 @@ class Frontend:
                 self.tock_duration = self.default_tock_duration if self.is_nonidle_tock(new_tock) else None
             self.curr_tock = new_tock
     
-    def tock_frac(self,ticks):
-        return (ticks - self.tock_begin_ticks)/self.tock_duration
+    def tock_frac(self,ticks=None):
+        duration = self.tock_duration if self.is_nonidle_tock(self.curr_tock) else self.default_tock_duration
+        # print ( (ticks or pygame.time.get_ticks()) - self.tock_begin_ticks)/float(duration)
+        return ( (ticks or pygame.time.get_ticks()) - self.tock_begin_ticks)/float(duration)
     
     def tock_done(self, ticks):
         if self.is_idle_tock(self.curr_tock):
@@ -125,7 +127,7 @@ class Frontend:
     def draw_all(self):
         # if self.curr_tock: print self.curr_tock
         self.screen.blit(self.background, (0, 0))
-        for tile_surface in self.backend.get_blit_surfaces( self.curr_tock, self.tile_size(), self.tock_frac ):
+        for tile_surface in self.backend.get_blit_surfaces( self.curr_tock, self.tock_frac(), self.tile_size() ):
             tile_surface.blit_to( self.screen, self.get_screen_padding_lt() )
             
     def handle_and_draw_menu(self):
@@ -257,38 +259,6 @@ class Frontend:
         undo_hit_idx = self.menu_hit_idx - len(self.menu_hit_rect_structs) if self.menu_hit_idx else None
         self.menu_hit_rect_structs.extend( self.draw_and_get_hit_rect_structs(
                                            undo_list, undo_hit_idx, render_menu_defaults, topright=x_y + (-5,+20) ) )
-
-        # if self.menu_obj.get_undoable_events():
-        #     undo_event = self.menu_obj.get_undoable_events()[-1]
-        #     text = txtlib.Text((undo_width, undo_height), 'freesans')
-        #     text.text = "Undo " + undo_event.event_text_ncase()
-        #     text.update()
-        #     r_undo = text.area.get_rect().move(x+verb_offset_x-undo_width-5, y+verb_offset_y)
-        #     if (self.menu_hit_idx == len(self.menu_hit_rect_structs)):
-        #         r_undo = r_undo.move(2,1)
-        #     self.screen.blit(text.area, r_undo.topleft)
-        #     #r_undos.h += verb_vstride
-        #     hit_rect_struct = Struct()
-        #     hit_rect_struct.verb = '_undo'
-        #     hit_rect_struct.undo_event = undo_event
-        #     hit_rect_struct.hit_rect = r_undo
-        #     self.menu_hit_rect_structs.append(hit_rect_struct)
-        # 
-        # if self.menu_obj.get_redoable_events():
-        #     redo_event = self.menu_obj.get_redoable_events()[-1]
-        #     text = txtlib.Text((undo_width, undo_height), 'freesans')
-        #     text.text = "Redo " + redo_event.event_text()
-        #     text.update()
-        #     r_redo = text.area.get_rect().move(x+verb_offset_x-undo_width-5, y+verb_offset_y+verb_spacing)
-        #     if (self.menu_hit_idx == len(self.menu_hit_rect_structs)):
-        #         r_redo = r_redo.move(2,1)
-        #     self.screen.blit(text.area, r_redo.topleft)
-        #     #undos.h += verb_vstride
-        #     hit_rect_struct = Struct()
-        #     hit_rect_struct.verb = '_redo'
-        #     hit_rect_struct.redo_event = redo_event
-        #     hit_rect_struct.hit_rect = r_redo
-        #     self.menu_hit_rect_structs.append(hit_rect_struct)
 
         # Menu rects
         #
