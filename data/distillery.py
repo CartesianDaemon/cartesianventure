@@ -77,13 +77,16 @@ room.make_map_from_key(init_map_str, base_tuples_from_char)
 # TODO: Move to separate character definition file
 room.add_obj_templates( default_props = prop_defaults.character,
     marzie  = Obj("Marzie",  graphic_source=CtxtGraphic(
-              # x = AnimGraphic("data/img_fab/player-fabulasheet.png",0,  0,100,100,colorkey='topleft'),
-              x = AnimGraphic("data/img_fab/axe.png",colorkey='topleft'),
-              d = AnimGraphic("data/img_fab/player-fabulasheet.png",  0,  0,100,100,colorkey='topleft',str='1x',hreps=7),
-              ) ),
+     # x = AnimGraphic("data/img_fab/player-fabulasheet.png",0,  0,100,100,colorkey='topleft'),
+     x = AnimGraphic("data/img_fab/player-fabulasheet.png",0,  0,100,100,colorkey='topleft'),
+     d = AnimGraphic("data/img_fab/player-fabulasheet.png",0,  0,100,100,colorkey='topleft',slide='linear',str='1x',hreps=7),
+     l = AnimGraphic("data/img_fab/player-fabulasheet.png",0,100,100,100,colorkey='topleft',slide='linear',str='1x',hreps=7),
+     u = AnimGraphic("data/img_fab/player-fabulasheet.png",0,200,100,100,colorkey='topleft',slide='linear',str='1x',hreps=7),
+     r = AnimGraphic("data/img_fab/player-fabulasheet.png",0,300,100,100,colorkey='topleft',slide='linear',str='1x',hreps=7),
+     ) ),
 )
 
-room.add_player(2,4,room.defs.marzie)
+room.add_player(2,3,room.defs.marzie)
         
 ##############################################################
 #

@@ -10,6 +10,7 @@ class Backend:
         self.default_idle_tock = {}
         self.curr_tock = self.default_idle_tock
         self.pending_subactions = {}
+        self.last_player_move = ('','')
 
     def load(self,filename):
         # TODO: need copy?
@@ -99,6 +100,10 @@ class Backend:
         return self.curr_room.map.get_mapsquare_at(x,y).get_combined_mainobj()
 
     def pop_tock(self):
+        if self.last_player_move[0]:
+            self.player.x, self.player.y = self.player.map_pos() + offset_from_dir(self.last_player_move)
+            # # TODO: Use map.move_char()
+        self.last_player_move = ( self.last_player_move[1], '' )
         ret = self.curr_tock
         if self.pending_subactions:
             raise NotImplementedError # TODO: pass next action to "do"
@@ -109,6 +114,7 @@ class Backend:
     def move_player(self,dir):
         assert dir in 'lrud'
         self.curr_tock = {(self.player.x,self.player.y,1,1):dir}
+        self.last_player_move = ( self.last_player_move[1], dir )
 
     def get_blit_surfaces(self, tock, frac, tile_size, window=Rect(0,0,15,7)):
         blit_surfaces = []
@@ -117,7 +123,7 @@ class Backend:
                 for obj_tuple in row:
                     for obj in obj_tuple:
                         blit_surface = obj.get_surface( tile_size,tock,frac )
-                        blit_surface.set_external_offset( obj.map_pos()*tile_size )
+                        blit_surface.add_external_offset( obj.map_pos()*tile_size )
                         blit_surfaces.append(blit_surface)
         return blit_surfaces
         

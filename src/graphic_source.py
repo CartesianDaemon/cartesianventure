@@ -26,8 +26,8 @@ class BlitSurface(pygame.Surface):
     def set_internal_offset(self,pos):
         self.internal_offset = Pos(pos)
 
-    def set_external_offset(self,offset):
-        self.external_offset = Pos(offset)
+    def add_external_offset(self,offset):
+        self.external_offset = self.external_offset + Pos(offset)
 
     def blit_to(self,target,pos):
         target.blit(self.surface,pos-self.internal_offset+self.external_offset)
@@ -36,7 +36,7 @@ class BlitSurface(pygame.Surface):
         return self.surface.get_rect()
         
 class BaseGraphic:
-    def __init__(self,filename,x=None,y=None,w=None,h=None,str='1x',hreps=1,colorkey=None):
+    def __init__(self,filename,x=None,y=None,w=None,h=None,str='1x',hreps=1,colorkey=None,slide=None):
         self.filename = filename
         self.surfaces = ()
         self.first_subrect = NotNone(x) and Rect(x,y,w,h)
@@ -80,16 +80,17 @@ class BaseGraphic:
         self.cur_dst_size = size
         self.transparent_surfaces = None
         
-    def _get_transparent_surfaces():
-        if self._transparent_surfaces is None:
-            self._transparent_surfaces = [ orig_surface.copy() for orig_surface in self.surfaces]
-            for surface in self._transparent_surfaces: surface.set_alpha(256,RLEACCEL)
-        return self._transparent_surfaces
+    def get_transparent_surfaces(self):
+        if self.transparent_surfaces is None:
+            self.transparent_surfaces = [ orig_surface.copy() for orig_surface in self.surfaces]
+            for surface in self.transparent_surfaces: surface.set_alpha(256,RLEACCEL)
+        return self.transparent_surfaces
 
-    def get_surface(self,pos,size,context='',is_transparent=False, idx=0, **kwargs):
+    def get_surface(self,pos,size,is_transparent=False, *args, **kwargs):
+        idx = kwargs.get('idx',0)
         if not self.surfaces or self.cur_dst_size != size:
             self.load(size)
-        surface = BlitSurface( self.surfaces[idx] if not is_transparent else self._get_transparent_surfaces()[idx] )
+        surface = BlitSurface( self.surfaces[idx] if not is_transparent else self.get_transparent_surfaces()[idx] )
         surface.set_internal_offset( surface.get_rect().size - Pos(size) )
         return surface
 
@@ -103,9 +104,15 @@ class RandGraphic(BaseGraphic):
 class AnimGraphic(BaseGraphic):
     def __init__(self,*args,**kwargs):
         BaseGraphic.__init__(self,*args,**kwargs)
+        self.slide = kwargs.get('slide')
 
-    def get_surface(self,pos, *args,**kwargs):
-        return BaseGraphic.get_surface(self,pos,*args,idx=int(kwargs['frac']*len(self.surfaces)),**kwargs)
+    def get_surface(self,pos,size, *args,**kwargs):
+        surface = BaseGraphic.get_surface(self,pos,size,*args,idx=int(kwargs['frac']*len(self.surfaces)),**kwargs)
+        # max_offset = offset_from_dir(kwargs['context'])
+        max_offset = size * offset_from_dir(kwargs['context'])
+        rel_offset = (int(max_offset.x*kwargs['frac']),int(max_offset.y*kwargs['frac']))
+        surface.add_external_offset( rel_offset )
+        return surface
         
 class CtxtGraphic:
     def __init__(self,**kwargs):
@@ -116,6 +123,7 @@ class CtxtGraphic:
         
     def get_surface(self,pos,size,context_tuple,*args,**kwargs):
         # tile = self.tiles.get(context,self.tiles['x'])
-        tile = first( self.tiles.get(context) for context in context_tuple ) or self.tiles['x'] # Crashes if no match and no default
+        ctxt, tile = first( (context, self.tiles.get(context)) for context in context_tuple ) or ('',self.tiles['x']) # Crashes if no match and no default
+        kwargs['context'] = ctxt
         return tile.get_surface(pos,size,*args,**kwargs)
 
