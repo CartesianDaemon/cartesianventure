@@ -122,6 +122,5 @@ def capitalize_first(str):
 def enumerate_2d(arr_2d):
     return ( (x, y, val) for y,line in enumerate(arr_2d) for x,val in enumerate(line) )
 
-    
 def first(lst,default=None):
-    return chain(lst,default).next()
+    return chain(lst,(default,)).next()

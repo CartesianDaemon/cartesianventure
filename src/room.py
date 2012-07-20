@@ -9,7 +9,7 @@ class Room:
         self._rules = Rules()
         self.map = Map()
         self.defs = Bunch()
-        self.copies = 0
+        self.player = None
     
     def get_rules(self):
         return self._rules

@@ -1,5 +1,5 @@
 # Standard modules
-from itertools import izip_longest
+from itertools import izip_longest, chain
 import copy
 
 # Internal modules
@@ -84,15 +84,18 @@ class Obj:
         self.state = state
     
     def get_contexts(self):
-        return (self.context,)
+        return (self.context,) if self.context else ()
         
     def map_pos(self):
         return Pos(self.x,self.y)
     
-    def get_surface(self,tile_size,tock_tuple=(),frac=0):
+    def get_surface(self,tile_size,tock,frac=0):
         is_transparent = self.transparent or self.transparent=='atbottomofscreen' and pos[1]==7 and 0 < pos[0] < 14
-        context_tuple = tock_tuple + self.get_contexts()
-        return self.graphic_source.get_surface( (self.x,self.y), tile_size, context_tuple, is_transparent)
+        tock_tuple = (context for rect,context in tock.iteritems() if Rect(rect)) # .collidepoint(self.map_pos) 
+        context_tuple = chain( tock_tuple, self.get_contexts() )
+        if self.character:
+            print tuple(context_tuple)
+        return self.graphic_source.get_surface( (self.x,self.y), tile_size, context_tuple, is_transparent, frac=frac)
         
     def is_hoverable(self):
         return self.hoverable;

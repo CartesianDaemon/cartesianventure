@@ -36,8 +36,8 @@ class Frontend:
         
         self.scene_begin_ticks = self.tock_begin_ticks = pygame.time.get_ticks()
         self.curr_tock = self.backend.default_idle_tock
-        self.default_tock_duration = None
-        self.tock_duration = 0
+        self.default_tock_duration = 250
+        self.tock_duration = None
 
         self.screen = pygame.display.set_mode( tuple(a*b+pad1+pad2 for a,b,pad1,pad2 in zip( self.backend.get_map_size(),
                                                                                             self.tile_size(),
@@ -99,15 +99,18 @@ class Frontend:
         return self.get_screen_padding_lt() + pos * self.tile_size()
 
     def is_idle_tock(self,tock):
+        return not tock
+
+    def is_nonidle_tock(self,tock):
         return bool(tock)
     
     def do_tock(self):
         ticks = pygame.time.get_ticks()
         if self.tock_done(ticks):
             new_tock = self.backend.pop_tock()
-            if not self.is_idle_tock(self.curr_tock) or not self.is_idle_tock(new_tock):
+            if not (self.is_idle_tock(self.curr_tock) and self.is_idle_tock(new_tock)):
                 self.tock_begin_ticks = ticks
-                self.tock_duration = self.default_tock_duration if not self.is_idle_tock(self.curr_tock) else None
+                self.tock_duration = self.default_tock_duration if self.is_nonidle_tock(new_tock) else None
             self.curr_tock = new_tock
     
     def tock_frac(self,ticks):
@@ -120,6 +123,7 @@ class Frontend:
             return ticks >= self.tock_begin_ticks + self.tock_duration
 
     def draw_all(self):
+        # if self.curr_tock: print self.curr_tock
         self.screen.blit(self.background, (0, 0))
         for tile_surface in self.backend.get_blit_surfaces( self.curr_tock, self.tile_size(), self.tock_frac ):
             tile_surface.blit_to( self.screen, self.get_screen_padding_lt() )
@@ -154,6 +158,12 @@ class Frontend:
             curr_obj = self.backend.get_obj_at(tile_x,tile_y)
         if (event.type == QUIT) or (event.type == KEYDOWN and event.key == K_F4 and event.mod&KMOD_ALT ):
             return 'quit'
+        elif event.type == KEYDOWN:
+            dir_sets = ( (K_LEFT,K_RIGHT,K_UP,K_DOWN), (K_a,K_d,K_w,K_s) )
+            dir_keys = "lrud"
+            dir = first( dir for dir_set in dir_sets for K_,dir in zip(dir_set,dir_keys) if K_==event.key)
+            if dir:
+                self.backend.move_player(dir)
         elif event.type == MOUSEMOTION:
             if self.following_with_transitive_verb:
                 self.transitive_verb_putative_objects = self.transitive_verb_objects + [curr_obj]

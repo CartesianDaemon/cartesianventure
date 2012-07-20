@@ -27,9 +27,14 @@ class RoomDefinition:
         
     def add_rule(self,*args,**kwargs):
         self.room._rules.add_rule(*args,**kwargs)
+    
+    def add_player(self,x,y,orig_obj):
+        obj = orig_obj.copy()
+        self.room.map.create_char_at(x,y,obj)
+        self.room.player = obj
 
-    def create_obj_at(self,x,y,obj):
-        self.room.map.create_at(x,y,obj.copy())
+    def create_obj_at(self,x,y,orig_obj):
+        self.room.map.create_obj_at(x,y,orig_obj.copy())
 
     def make_map_from_key(self,init_map_str,charkey_func):
         char_map = init_map_str.splitlines()

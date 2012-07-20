@@ -7,14 +7,15 @@ import src.room_data as room_data
 class Backend:
     def __init__(self):
         self.rules = Rules()
-        self.curr_tock = {}
         self.default_idle_tock = {}
+        self.curr_tock = self.default_idle_tock
         self.pending_subactions = {}
 
     def load(self,filename):
         # TODO: need copy?
         self.curr_room = room_data.load_room(filename)
         self.rules.update(self.curr_room.get_rules())
+        self.player = self.curr_room.player
     
     def do(self,verb,*arg_objs):
         print (verb,)+tuple(obj.name for obj in arg_objs)
@@ -104,6 +105,10 @@ class Backend:
         else:
             self.curr_tock = self.default_idle_tock
         return ret
+        
+    def move_player(self,dir):
+        assert dir in 'lrud'
+        self.curr_tock = {(self.player.x,self.player.y,1,1):dir}
 
     def get_blit_surfaces(self, tock, tile_size, window=Rect(0,0,15,7), frac=0):
         blit_surfaces = []
@@ -111,7 +116,7 @@ class Backend:
             for row in stratum:
                 for obj_tuple in row:
                     for obj in obj_tuple:
-                        blit_surface = obj.get_surface( tile_size )
+                        blit_surface = obj.get_surface( tile_size,tock,frac )
                         blit_surface.set_external_offset( obj.map_pos()*tile_size )
                         blit_surfaces.append(blit_surface)
         return blit_surfaces

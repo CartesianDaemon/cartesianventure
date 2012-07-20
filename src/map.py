@@ -17,6 +17,9 @@ class MapSquare:
     def get_obj_layers(self):
         return self.strata['obj_layers']
     
+    def get_char_layers(self):
+        return self.strata['char_layers']
+
     def get_combined_mainobj(self):
         # TODO: Do something different if top object isn't always "main" one, eg. overlay of smoke, water, etc
         # TODO: Deal with empty square without crashing?
@@ -81,10 +84,13 @@ class Map:
     def map_size(self):
         return (len(self.map_squares[0]),len(self.map_squares))
         
-    def create_at(self,x,y,obj):
-        obj.x = x
-        obj.y = y
+    def create_obj_at(self,x,y,obj):
+        obj.x, obj.y = x, y
         self.map_squares[y][x].get_obj_layers().set_obj(obj)
+        
+    def create_char_at(self,x,y,obj):
+        obj.x, obj.y = x, y
+        self.map_squares[y][x].get_char_layers().set_obj(obj)
         
     def remove_obj(self,obj):
         assert self.map_squares[obj.y][obj.x].get_obj_layers().lst == [obj]

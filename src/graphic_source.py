@@ -36,13 +36,15 @@ class BlitSurface(pygame.Surface):
         return self.surface.get_rect()
         
 class BaseGraphic:
-    def __init__(self,filename,x=None,y=None,w=None,h=None,hreps=1,colorkey=None):
+    def __init__(self,filename,x=None,y=None,w=None,h=None,str='1x',hreps=1,colorkey=None):
         self.filename = filename
         self.surfaces = ()
         self.first_subrect = NotNone(x) and Rect(x,y,w,h)
+        self.orig_rect = self.first_subrect
         self.hreps = hreps
         self.colorkey = colorkey
         self.cur_dst_size = None
+        self.stride = str
 
     def load(self,size):
         self.surfaces = []
@@ -50,10 +52,17 @@ class BaseGraphic:
             surface = pygame.surface()
             self.surfaces.append(surface)
         file_surface = pygame.image.load(self.filename)
+        if not self.orig_rect:
+            self.orig_rect = file_surface.get_rect()
         # w,h for tile image including possible overlay over tile to North
         w = size.x
-        h = size.y * self.first_subrect.h / self.first_subrect.w
-        stride = 2 * self.first_subrect.w
+        h = size.y * self.orig_rect.h / self.orig_rect.w
+        if isinstance(self.stride,str) and self.stride[-1]=='x':
+            stride = int(self.stride[:-1]) * self.orig_rect.w
+        elif isinstance(self.stride,Numeric):
+            stride = self.stride
+        else:
+            raise NotImplemented
         for rep in range(self.hreps):
             surface = file_surface
             if self.first_subrect is not None:
@@ -96,7 +105,7 @@ class AnimGraphic(BaseGraphic):
         BaseGraphic.__init__(self,*args,**kwargs)
 
     def get_surface(self,pos, *args,**kwargs):
-        return BaseGraphic.get_surface(self,pos,*args,idx=int(frac*len(self.surfaces)),**kwargs)
+        return BaseGraphic.get_surface(self,pos,*args,idx=int(kwargs['frac']*len(self.surfaces)),**kwargs)
         
 class CtxtGraphic:
     def __init__(self,**kwargs):
@@ -107,6 +116,6 @@ class CtxtGraphic:
         
     def get_surface(self,pos,size,context_tuple,*args,**kwargs):
         # tile = self.tiles.get(context,self.tiles['x'])
-        tile = first( self.tiles.get(context) for context in context_tuple ) or self.tiles['x']
+        tile = first( self.tiles.get(context) for context in context_tuple ) or self.tiles['x'] # Crashes if no match and no default
         return tile.get_surface(pos,size,*args,**kwargs)
 
