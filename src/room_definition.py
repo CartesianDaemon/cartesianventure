@@ -4,13 +4,13 @@ from src.graphic_source import BaseGraphic, CtxtGraphic, RandGraphic, AnimGraphi
 from src.helpers import *
 
 prop_defaults = Bunch(
-    pickable =   Bunch(moveable=True , pickable=True , hoverable=True , can_support=False, passable=True  ),
-    moveable =   Bunch(moveable=True , pickable=False, hoverable=True , can_support=False, passable=False ),
-    stackable =  Bunch(moveable=True , pickable=False, hoverable=True , can_support=False, passable=False ),
-    fixed =      Bunch(moveable=False, pickable=False, hoverable=True , can_support=False, passable=False ),
-    floor =      Bunch(moveable=False, pickable=False, hoverable=False, can_support=True , passable=False ),
-    wall =       Bunch(moveable=False, pickable=False, hoverable=False, can_support=False, passable=False ),
-    character =  Bunch(moveable=False, pickable=False, hoverable=False, can_support=False, passable=False, character=True ),
+    pickable =   Bunch(moveable=True , pickable=True , hoverable=True , can_support=False, walkable=True  ),
+    moveable =   Bunch(moveable=True , pickable=False, hoverable=True , can_support=False, walkable=False ),
+    stackable =  Bunch(moveable=True , pickable=False, hoverable=True , can_support=False, walkable=False ),
+    fixed =      Bunch(moveable=False, pickable=False, hoverable=True , can_support=False, walkable=False ),
+    floor =      Bunch(moveable=False, pickable=False, hoverable=False, can_support=True , walkable=True ),
+    wall =       Bunch(moveable=False, pickable=False, hoverable=False, can_support=False, walkable=False ),
+    character =  Bunch(moveable=False, pickable=False, hoverable=False, can_support=False, walkable=False, character=True ),
 )
 
 # All object assignment in RoomDefinition should be copy

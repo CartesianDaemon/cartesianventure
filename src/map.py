@@ -72,14 +72,14 @@ class Map:
                            ('b',0,+1),
                            ('l',-1,0),
                            ('r',+1,0), )
-            abs_coords = tuple( (char,x+dx,y+dy) for char,dx,dy in adj_coords if self.is_in_map(x+dx,y+dy) ) 
+            abs_coords = tuple( (char,x+dx,y+dy) for char,dx,dy in adj_coords if self.is_in_map((x+dx,y+dy)) ) 
             for obj in map_square.get_combined_lst():
                 valid_chars = ( char for char,x_,y_ in abs_coords
                                      if obj.draw_contiguously_with( self.map_squares[y_][x_].get_combined_lst() ) )
                 obj.context = ''.join( valid_chars )
 
-    def is_in_map(self,x,y):
-        return 0 <= x < self.map_size()[0] and 0 <= y < self.map_size()[1]
+    def is_in_map(self,pos):
+        return 0 <= pos[0] < self.map_size()[0] and 0 <= pos[1] < self.map_size()[1]
         
     def map_size(self):
         return (len(self.map_squares[0]),len(self.map_squares))
@@ -110,9 +110,9 @@ class Map:
         self.map_squares[new_y][new_x].get_obj_layers().set_obj(obj)
         obj.x, obj.y = new_x, new_y
 
-    def get_mapsquare_at(self,x,y):
-        assert self.is_in_map(x,y)
-        return self.map_squares[y][x]
+    def get_mapsquare_at(self,pos):
+        assert self.is_in_map(pos)
+        return self.map_squares[pos[1]][pos[0]]
 
     def get_strata_by_rows(self):
         H = len(self.map_squares[0][0].strata)

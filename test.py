@@ -120,7 +120,7 @@ class TestBackend(unittest.TestCase):
         pass
     
     def obj_at(self,x,y):
-        return self.backend_distillery.get_obj_at(x,y)
+        return self.backend_distillery.get_obj_at((x,y))
     
     def test_contexts(self):
         self.assertEqual(self.obj_at(0,2).get_contexts(),('br',) )

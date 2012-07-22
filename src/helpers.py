@@ -131,4 +131,5 @@ def offset_from_dir(dir):
     if dir=='u': return (0,-1)
     if dir=='d': return (0,+1)
     if dir=='' : return (0,0)
+    print "dir = " + str(dir)
     raise NotImplemented

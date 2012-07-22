@@ -96,12 +96,12 @@ class Backend:
     def convert_obj(self,old_obj,new_obj):
         self.curr_room.map.convert_obj(old_obj,new_obj)
     
-    def get_obj_at(self,x,y):
-        return self.curr_room.map.get_mapsquare_at(x,y).get_combined_mainobj()
+    def get_obj_at(self,pos):
+        return self.curr_room.map.get_mapsquare_at(pos).get_combined_mainobj()
 
     def pop_tock(self):
         if self.last_player_move[0]:
-            self.player.x, self.player.y = self.player.map_pos() + offset_from_dir(self.last_player_move)
+            self.player.x, self.player.y = self.player.map_pos() + offset_from_dir(self.last_player_move[0])
             # # TODO: Use map.move_char()
         self.last_player_move = ( self.last_player_move[1], '' )
         ret = self.curr_tock
@@ -113,8 +113,9 @@ class Backend:
         
     def move_player(self,dir):
         assert dir in 'lrud'
-        self.curr_tock = {(self.player.x,self.player.y,1,1):dir}
-        self.last_player_move = ( self.last_player_move[1], dir )
+        if self.get_obj_at(self.player.map_pos() + offset_from_dir(dir)).walkable:
+            self.curr_tock = {(self.player.x,self.player.y,1,1):dir}
+            self.last_player_move = ( self.last_player_move[1], dir )
 
     def get_blit_surfaces(self, tock, frac, tile_size, window=Rect(0,0,15,7)):
         blit_surfaces = []

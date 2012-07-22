@@ -156,8 +156,7 @@ class Frontend:
             pickle.dump(my_event,log_file)
             event = my_event # test it works before we try loading from file
         if event.type in (MOUSEBUTTONDOWN,MOUSEBUTTONUP,MOUSEMOTION):
-            tile_x, tile_y = self.get_tile_from_screen_coords(event.pos)
-            curr_obj = self.backend.get_obj_at(tile_x,tile_y)
+            curr_obj = self.backend.get_obj_at(self.get_tile_from_screen_coords(event.pos))
         if (event.type == QUIT) or (event.type == KEYDOWN and event.key == K_F4 and event.mod&KMOD_ALT ):
             return 'quit'
         elif event.type == KEYDOWN:
