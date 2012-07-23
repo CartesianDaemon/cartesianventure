@@ -112,18 +112,20 @@ class AnimGraphic(BaseGraphic):
         self.slide = kwargs.get('slide')
         self.frames = kwargs.get('frames')
         if self.frames and 'reps' not in kwargs:
-            kwargs['reps'] = max(self.frames)
-        BaseGraphic.__init__(self,*args,**kwargs)
+            kwargs['reps'] = 1+max(self.frames)
         if not self.frames:
-            self.frames = tuple(range(len(self.surfaces)))
+            self.frames = tuple(range( kwargs.get('reps',1) ))
+        BaseGraphic.__init__(self,*args,**kwargs)
 
     def get_surface(self,pos,size, *args,**kwargs):
-        # idx = self.frames[int(kwargs['frac']*len(self.frames))]
-        idx = int(kwargs['frac']*len(self.surfaces))
+        idx = self.frames[int(kwargs['frac']*len(self.frames))]
         surface = BaseGraphic.get_surface(self,pos,size,*args,idx=idx,**kwargs)
-        max_offset = size * offset_from_dir(kwargs['context'])
-        rel_offset = (int(max_offset.x*kwargs['frac']),int(max_offset.y*kwargs['frac']))
-        surface.add_external_offset( rel_offset )
+        if self.slide:
+            assert self.slide=='linear'
+            assert kwargs['context'] in 'udlr'
+            max_offset = size * offset_from_dir(kwargs['context'])
+            rel_offset = (int(max_offset.x*kwargs['frac']),int(max_offset.y*kwargs['frac']))
+            surface.add_external_offset( rel_offset )
         return surface
         
 class CtxtGraphic:
@@ -135,7 +137,7 @@ class CtxtGraphic:
         
     def get_surface(self,pos,size,context_tuple,*args,**kwargs):
         # tile = self.tiles.get(context,self.tiles['x'])
-        ctxt, tile = first( (context, self.tiles.get(context)) for context in context_tuple ) or ('',self.tiles['x']) # Crashes if no match and no default
+        ctxt, tile = first( (context, self.tiles.get(context)) for context in context_tuple ) or ('x',self.tiles['x']) # Crashes if no match and no default
         kwargs['context'] = ctxt
         return tile.get_surface(pos,size,*args,**kwargs)
 

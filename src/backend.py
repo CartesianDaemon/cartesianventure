@@ -3,11 +3,12 @@ from src.helpers import *
 from src.map import Map, MapSquare
 from src.rules import Rules, Rule, Event
 import src.room_data as room_data   
+import random
 
 class Backend:
     def __init__(self):
         self.rules = Rules()
-        self.default_idle_state = ({},[],dict(idle=True))
+        self.default_idle_state = ({},[],dict(idle=True),lambda frac:self._idle_done(frac))
         self.curr_state = self.default_idle_state
         self.pending_subactions = {}
         self.last_player_move = ('','')
@@ -108,9 +109,8 @@ class Backend:
         if self.next_act_lambda:
             self.next_act_lambda()
             self.next_act_lambda = None
-    
-    # def state_is_modal(self):
-    #     return self.curr_state[2].get('modal')
+        else:
+            self._idle_fidget()
         
     def state_is_idle(self):
         return self.curr_state[2].get('idle')
@@ -134,6 +134,15 @@ class Backend:
             return self.curr_state[3](frac)
         else:
             return frac>=1
+    
+    def _idle_done(self,frac):
+        return frac>=1
+    
+    def _idle_fidget(self):
+        # Only do at random intervals
+        random.seed()
+        fidget = random.choice(('x','x','x','x','x','x1','x2'))
+        self.curr_state = ( {self.player.map_rect():fidget},[],dict(idle=True))
     
     def _finish_move(self,dir):
         self.player.x, self.player.y = self.player.map_pos() + offset_from_dir(dir)

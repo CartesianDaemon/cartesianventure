@@ -79,7 +79,8 @@ room.make_map_from_key(init_map_str, base_tuples_from_char)
 room.add_obj_templates( default_props = prop_defaults.character,
     marzie  = Obj("Marzie",  graphic_source=CtxtGraphic(
      x = AnimGraphic("data/img_fab/player-fabulasheet.png",0,  0,100,100,colorkey='topleft'),
-     b1= AnimGraphic("data/img_fab/player-fabulasheet.png",0,  0,100,100,colorkey='topleft',str='1y',frames=(0,1,0,2)),
+     x1= AnimGraphic("data/img_fab/player-fabulasheet.png",0,  0,100,100,colorkey='topleft',str='1y',frames=(1,)),
+     x2= AnimGraphic("data/img_fab/player-fabulasheet.png",0,  0,100,100,colorkey='topleft',str='1y',frames=(3,)),
      d = AnimGraphic("data/img_fab/player-fabulasheet.png",0,  0,100,100,colorkey='topleft',slide='linear',str='1x',reps=7),
      l = AnimGraphic("data/img_fab/player-fabulasheet.png",0,100,100,100,colorkey='topleft',slide='linear',str='1x',reps=7),
      u = AnimGraphic("data/img_fab/player-fabulasheet.png",0,200,100,100,colorkey='topleft',slide='linear',str='1x',reps=7),
