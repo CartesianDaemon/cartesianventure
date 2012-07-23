@@ -7,7 +7,7 @@ import src.room_data as room_data
 class Backend:
     def __init__(self):
         self.rules = Rules()
-        self.default_idle_state = ({},{},dict(shortcircuitable=True))
+        self.default_idle_state = ({},{},dict(idle=True))
         self.curr_state = self.default_idle_state
         self.pending_subactions = {}
         self.last_player_move = ('','')
@@ -113,8 +113,8 @@ class Backend:
     # def state_is_modal(self):
     #     return self.curr_state[2].get('modal')
         
-    def state_is_shortcircuitable(self):
-        return self.curr_state[2].get('shortcircuitable')
+    def state_is_idle(self):
+        return self.curr_state[2].get('idle')
 
     def state_is_chainable(self):
         return self.curr_state[2].get('chainable')

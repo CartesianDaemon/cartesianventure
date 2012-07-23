@@ -30,6 +30,7 @@ class Frontend:
         self.last_mouse_tile_pos = None
         self.menu_hit_idx = None
         self.following_with_transitive_verb = None
+        self.recent_presses = []
         
         self.backend = Backend()
         self.backend.load(default_room)
@@ -84,6 +85,8 @@ class Frontend:
             if ret == 'quit': return 'quit'
         if self.frac(ticks) >= 1:
             self.advance_state(ticks)
+            if self.backend.state_is_idle() and self.recent_presses:
+                self.backend.move_player( self.dir_from_key(self.recent_presses[-1]) )
         self.draw_all(ticks)
         self.handle_and_draw_menu(ticks)
         pygame.display.flip()
@@ -127,6 +130,11 @@ class Frontend:
         if self.menu_pos:
             self.draw_menu(self.menu_pos)
 
+    def dir_from_key(self,event_key):
+        dir_sets = ( (K_LEFT,K_RIGHT,K_UP,K_DOWN), (K_a,K_d,K_w,K_s) )
+        dir_keys = "lrud"
+        return first( dir for dir_set in dir_sets for K_,dir in zip(dir_set,dir_keys) if K_==event_key)
+
     def handle_event(self, event, ticks):
         if log_file: # and event.type in (MOUSEBUTTONDOWN,MOUSEBUTTONUP,MOUSEMOTION,QUIT,KEYDOWN):
             my_event = Struct()
@@ -140,14 +148,15 @@ class Frontend:
         if (event.type == QUIT) or (event.type == KEYDOWN and event.key == K_F4 and event.mod&KMOD_ALT ):
             return 'quit'
         elif event.type == KEYDOWN:
-            dir_sets = ( (K_LEFT,K_RIGHT,K_UP,K_DOWN), (K_a,K_d,K_w,K_s) )
-            dir_keys = "lrud"
-            dir = first( dir for dir_set in dir_sets for K_,dir in zip(dir_set,dir_keys) if K_==event.key)
-            if self.backend.state_is_shortcircuitable():
+            self.recent_presses.append(event.key)
+            dir = self.dir_from_key(event.key)
+            if self.backend.state_is_idle():
                 self.advance_state(ticks)
                 if dir: self.backend.move_player(dir)
             elif self.backend.state_is_chainable():
                 if dir: self.backend.move_player(dir)
+        elif event.type == KEYUP:
+            self.recent_presses.remove(event.key)
         elif event.type == MOUSEMOTION:
             if self.following_with_transitive_verb:
                 self.transitive_verb_putative_objects = self.transitive_verb_objects + [curr_obj]
@@ -207,7 +216,7 @@ class Frontend:
                 # self.last_mouse_obj = tile_obj or tile_base
     
     def draw_menu(self,mouse_pos):
-        if not self.backend.state_is_shortcircuitable():
+        if not self.backend.state_is_idle():
             self.menu_hit_rect_structs = ()
             return
         tile_pos = self.get_screen_from_tile_coords( self.get_tile_from_screen_coords(mouse_pos) )
