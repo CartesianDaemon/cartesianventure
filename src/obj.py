@@ -88,6 +88,9 @@ class Obj:
         
     def map_pos(self):
         return Pos(self.x,self.y)
+        
+    def map_rect(self):
+        return (self.x,self.y,1,1)
     
     def get_surface(self,tile_size,curr_state,frac=0):
         is_transparent = self.transparent or self.transparent=='atbottomofscreen' and pos[1]==7 and 0 < pos[0] < 14

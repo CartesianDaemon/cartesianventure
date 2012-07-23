@@ -36,12 +36,12 @@ class BlitSurface(pygame.Surface):
         return self.surface.get_rect()
         
 class BaseGraphic:
-    def __init__(self,filename,x=None,y=None,w=None,h=None,str='1x',hreps=1,colorkey=None,slide=None):
+    def __init__(self,filename,x=None,y=None,w=None,h=None,str='1x',reps=1,colorkey=None,slide=None,frames=None):
         self.filename = filename
         self.surfaces = ()
         self.first_subrect = NotNone(x) and Rect(x,y,w,h)
         self.orig_rect = self.first_subrect
-        self.hreps = hreps
+        self.reps = reps
         self.colorkey = colorkey
         self.cur_dst_size = None
         self.stride = str
@@ -58,15 +58,18 @@ class BaseGraphic:
         w = size.x
         h = size.y * self.orig_rect.h / self.orig_rect.w
         if isinstance(self.stride,str) and self.stride[-1]=='x':
-            stride = int(self.stride[:-1]) * self.orig_rect.w
-        elif isinstance(self.stride,Numeric):
-            stride = self.stride
+            stride = Pos(int(self.stride[:-1]) * self.orig_rect.w,0)
+        if isinstance(self.stride,str) and self.stride[-1]=='y':
+            stride = Pos(0,int(self.stride[:-1]) * self.orig_rect.h)
+        elif isinstance(self.stride,Number):
+            stride = Pos(self.stride,0)
         else:
-            raise NotImplemented
-        for rep in range(self.hreps):
+            stride = stride
+            assert isinstance(stride[1],Number)
+        for rep in range(self.reps):
             surface = file_surface
             if self.first_subrect is not None:
-                surface = surface.subsurface(self.first_subrect.move(stride*rep,0))
+                surface = surface.subsurface(self.first_subrect.move(stride*rep))
             surface = pygame.transform.scale(surface,(w,h))
             if self.colorkey is not None:
                 colorkey = self.colorkey
@@ -93,22 +96,31 @@ class BaseGraphic:
         surface = BlitSurface( self.surfaces[idx] if not is_transparent else self.get_transparent_surfaces()[idx] )
         surface.set_internal_offset( surface.get_rect().size - Pos(size) )
         return surface
+    
+    def nframes(self):
+        return len(self.surfaces)
 
 class RandGraphic(BaseGraphic):
     def __init__(self,*args,**kwargs):
         BaseGraphic.__init__(self,*args,**kwargs)
         
     def get_surface(self,pos, *args,**kwargs):
-        return BaseGraphic.get_surface(self,pos,*args,idx=hash_to_range(pos,self.hreps),**kwargs)
+        return BaseGraphic.get_surface(self,pos,*args,idx=hash_to_range(pos,self.reps),**kwargs)
 
 class AnimGraphic(BaseGraphic):
     def __init__(self,*args,**kwargs):
-        BaseGraphic.__init__(self,*args,**kwargs)
         self.slide = kwargs.get('slide')
+        self.frames = kwargs.get('frames')
+        if self.frames and 'reps' not in kwargs:
+            kwargs['reps'] = max(self.frames)
+        BaseGraphic.__init__(self,*args,**kwargs)
+        if not self.frames:
+            self.frames = tuple(range(len(self.surfaces)))
 
     def get_surface(self,pos,size, *args,**kwargs):
-        surface = BaseGraphic.get_surface(self,pos,size,*args,idx=int(kwargs['frac']*len(self.surfaces)),**kwargs)
-        # max_offset = offset_from_dir(kwargs['context'])
+        # idx = self.frames[int(kwargs['frac']*len(self.frames))]
+        idx = int(kwargs['frac']*len(self.surfaces))
+        surface = BaseGraphic.get_surface(self,pos,size,*args,idx=idx,**kwargs)
         max_offset = size * offset_from_dir(kwargs['context'])
         rel_offset = (int(max_offset.x*kwargs['frac']),int(max_offset.y*kwargs['frac']))
         surface.add_external_offset( rel_offset )

@@ -83,10 +83,10 @@ class Frontend:
         for event in events:
             ret = self.handle_event(event, ticks)
             if ret == 'quit': return 'quit'
-        if self.frac(ticks) >= 1:
+        if self.finished_state(ticks) >= 1:
             self.advance_state(ticks)
             if self.backend.state_is_idle() and self.recent_presses:
-                self.backend.move_player( self.dir_from_key(self.recent_presses[-1]) )
+                self.backend.start_move( self.dir_from_key(self.recent_presses[-1]) )
         self.draw_all(ticks)
         self.handle_and_draw_menu(ticks)
         pygame.display.flip()
@@ -103,7 +103,10 @@ class Frontend:
 
     def frac(self,ticks):
         return (ticks - self.state_begin_ticks) / float(self.state_duration)
-
+    
+    def finished_state(self,ticks):
+        return self.backend.finished_state(self.frac(ticks))
+    
     def advance_state(self,ticks):
         self.backend.advance_state()
         self.state_begin_ticks = ticks
@@ -152,9 +155,9 @@ class Frontend:
             dir = self.dir_from_key(event.key)
             if self.backend.state_is_idle():
                 self.advance_state(ticks)
-                if dir: self.backend.move_player(dir)
+                if dir: self.backend.start_move(dir)
             elif self.backend.state_is_chainable():
-                if dir: self.backend.move_player(dir)
+                if dir: self.backend.start_move(dir)
         elif event.type == KEYUP:
             self.recent_presses.remove(event.key)
         elif event.type == MOUSEMOTION:

@@ -21,16 +21,16 @@ room = RoomDefinition()
 ##############################################################
 
 room.add_obj_templates( default_props = prop_defaults.floor,
-   # floorboards     = Obj("floor", graphic_source=RandGraphic("data/img_circ/VILFLR.bmp",  40, 41,40,40,str='2x',hreps=6)),
+   # floorboards     = Obj("floor", graphic_source=RandGraphic("data/img_circ/VILFLR.bmp",  40, 41,40,40,str='2x',reps=6)),
    floorboards     = Obj("floor", graphic_source=RandGraphic("data/img_test/floor.png")),
    crazypaving     = Obj("floor", graphic_source=BaseGraphic("data/img_circ/GRS2ROC.bmp",120,161,40,40)),
-   paving          = Obj("floor", graphic_source=RandGraphic("data/img_circ/PAVE.bmp",    40, 41,40,40,str='2x',hreps=4)),
+   paving          = Obj("floor", graphic_source=RandGraphic("data/img_circ/PAVE.bmp",    40, 41,40,40,str='2x',reps=4)),
 )
 
 room.add_obj_templates( default_props = prop_defaults.wall,
     wall = Obj("wall",  graphic_source=CtxtGraphic(
                   x  = BaseGraphic("data/img_circ/VILINT.bmp",160, 41,40,120,colorkey='topleft'),
-                  lr = RandGraphic("data/img_circ/VILINT.bmp",160, 41,40,120,colorkey='topleft',str='2x',hreps=2),
+                  lr = RandGraphic("data/img_circ/VILINT.bmp",160, 41,40,120,colorkey='topleft',str='2x',reps=2),
                   tb = BaseGraphic("data/img_circ/VILINT.bmp", 40,201,40,120,colorkey='topleft'),
                   tl = BaseGraphic("data/img_circ/VILINT.bmp",440, 41,40,120,colorkey='topleft'),
                   tr = BaseGraphic("data/img_circ/VILINT.bmp",545, 41,40,120,colorkey='topleft'),
@@ -78,12 +78,16 @@ room.make_map_from_key(init_map_str, base_tuples_from_char)
 # TODO: Move to separate character definition file
 room.add_obj_templates( default_props = prop_defaults.character,
     marzie  = Obj("Marzie",  graphic_source=CtxtGraphic(
-     # x = AnimGraphic("data/img_fab/player-fabulasheet.png",0,  0,100,100,colorkey='topleft'),
      x = AnimGraphic("data/img_fab/player-fabulasheet.png",0,  0,100,100,colorkey='topleft'),
-     d = AnimGraphic("data/img_fab/player-fabulasheet.png",0,  0,100,100,colorkey='topleft',slide='linear',str='1x',hreps=7),
-     l = AnimGraphic("data/img_fab/player-fabulasheet.png",0,100,100,100,colorkey='topleft',slide='linear',str='1x',hreps=7),
-     u = AnimGraphic("data/img_fab/player-fabulasheet.png",0,200,100,100,colorkey='topleft',slide='linear',str='1x',hreps=7),
-     r = AnimGraphic("data/img_fab/player-fabulasheet.png",0,300,100,100,colorkey='topleft',slide='linear',str='1x',hreps=7),
+     b1= AnimGraphic("data/img_fab/player-fabulasheet.png",0,  0,100,100,colorkey='topleft',str='1y',frames=(0,1,0,2)),
+     d = AnimGraphic("data/img_fab/player-fabulasheet.png",0,  0,100,100,colorkey='topleft',slide='linear',str='1x',reps=7),
+     l = AnimGraphic("data/img_fab/player-fabulasheet.png",0,100,100,100,colorkey='topleft',slide='linear',str='1x',reps=7),
+     u = AnimGraphic("data/img_fab/player-fabulasheet.png",0,200,100,100,colorkey='topleft',slide='linear',str='1x',reps=7),
+     r = AnimGraphic("data/img_fab/player-fabulasheet.png",0,300,100,100,colorkey='topleft',slide='linear',str='1x',reps=7),
+     fd= BaseGraphic("data/img_fab/player-fabulasheet.png",0,  0,100,100,colorkey='topleft'),
+     fl= BaseGraphic("data/img_fab/player-fabulasheet.png",0,100,100,100,colorkey='topleft'),
+     fu= BaseGraphic("data/img_fab/player-fabulasheet.png",0,200,100,100,colorkey='topleft'),
+     fr= BaseGraphic("data/img_fab/player-fabulasheet.png",0,300,100,100,colorkey='topleft'),
      ) ),
 )
 

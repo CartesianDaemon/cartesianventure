@@ -7,12 +7,12 @@ import src.room_data as room_data
 class Backend:
     def __init__(self):
         self.rules = Rules()
-        self.default_idle_state = ({},{},dict(idle=True))
+        self.default_idle_state = ({},[],dict(idle=True))
         self.curr_state = self.default_idle_state
         self.pending_subactions = {}
         self.last_player_move = ('','')
         self.frac = 0
-        self.next_act = {}
+        self.next_act_lambda = None
 
     def load(self,filename):
         # TODO: need copy?
@@ -102,13 +102,12 @@ class Backend:
         return self.curr_room.map.get_mapsquare_at(pos).get_combined_mainobj()
 
     def advance_state(self):
-        if self.curr_state[1]:
-            self.player.x, self.player.y = self.player.map_pos() + offset_from_dir(self.curr_state[1]['player_move'])
-            # TODO: Use map.move_char()
+        for func in self.curr_state[1]:
+            func()
         self.curr_state = self.default_idle_state
-        if self.next_act:
-            self.move_player(self.next_act['dir'])
-            self.next_act = {}
+        if self.next_act_lambda:
+            self.next_act_lambda()
+            self.next_act_lambda = None
     
     # def state_is_modal(self):
     #     return self.curr_state[2].get('modal')
@@ -118,15 +117,31 @@ class Backend:
 
     def state_is_chainable(self):
         return self.curr_state[2].get('chainable')
-        
-    def move_player(self,dir):
+    
+    def start_move(self,dir):
         assert dir in 'lrud'
         if self.state_is_chainable():
-            self.next_act = {'dir':dir}
+            self.next_act_lambda = lambda: self.start_move(dir)
         else:
             if self.get_obj_at(self.player.map_pos() + offset_from_dir(dir)).walkable:
-                self.curr_state = ({(self.player.x,self.player.y,1,1):dir},{'player_move':dir},dict(chainable=True))
-
+                self.curr_state = ({self.player.map_rect():dir},[lambda:self._finish_move(dir)],dict(chainable=True))
+                self.next_act_lambda = lambda: self._begin_facing(dir)
+            else:
+                self._begin_facing(dir)
+    
+    def finished_state(self,frac):
+        if len(self.curr_state)>=4:
+            return self.curr_state[3](frac)
+        else:
+            return frac>=1
+    
+    def _finish_move(self,dir):
+        self.player.x, self.player.y = self.player.map_pos() + offset_from_dir(dir)
+        # TODO: Use map.move_char()
+        
+    def _begin_facing(self,dir):
+        self.curr_state = ({self.player.map_rect():"f"+dir},[],dict(idle=True),lambda frac:frac>=3 )
+    
     def get_blit_surfaces(self, frac, tile_size, window=Rect(0,0,15,7)):
         blit_surfaces = []
         for stratum in self.curr_room.map.get_strata_by_rows():
