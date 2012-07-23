@@ -34,10 +34,9 @@ class Frontend:
         self.backend = Backend()
         self.backend.load(default_room)
         
-        self.scene_begin_ticks = self.tock_begin_ticks = pygame.time.get_ticks()
-        self.curr_tock = self.backend.default_idle_tock
-        self.default_tock_duration = 500
-        self.tock_duration = None
+        self.scene_begin_ticks = self.state_begin_ticks = pygame.time.get_ticks()
+        self.default_state_duration = 500
+        self.state_duration = self.default_state_duration
 
         self.screen = pygame.display.set_mode( tuple(a*b+pad1+pad2 for a,b,pad1,pad2 in zip( self.backend.get_map_size(),
                                                                                             self.tile_size(),
@@ -74,18 +73,19 @@ class Frontend:
                 events = pygame.event.get()
             else:
                 events = pygame.event.get() or (pygame.event.wait(),)
-            ret = self.loop_step(events)
+            ret = self.loop_step(pygame.time.get_ticks(),events)
             if ret == 'quit': break
         if log_file: log_file.close()
         pygame.quit()
 
-    def loop_step(self,events=()):
+    def loop_step(self,ticks,events=()):
         for event in events:
-            ret = self.handle_event(event)
+            ret = self.handle_event(event, ticks)
             if ret == 'quit': return 'quit'
-        self.do_tock()
-        self.draw_all()
-        self.handle_and_draw_menu()
+        if self.frac(ticks) >= 1:
+            self.advance_state(ticks)
+        self.draw_all(ticks)
+        self.handle_and_draw_menu(ticks)
         pygame.display.flip()
         sys.stdout.flush()
 
@@ -98,56 +98,36 @@ class Frontend:
     def get_screen_from_tile_coords(self,pos):
         return self.get_screen_padding_lt() + pos * self.tile_size()
 
-    def is_idle_tock(self,tock):
-        return not tock
+    def frac(self,ticks):
+        return (ticks - self.state_begin_ticks) / float(self.state_duration)
 
-    def is_nonidle_tock(self,tock):
-        return bool(tock)
+    def advance_state(self,ticks):
+        self.backend.advance_state()
+        self.state_begin_ticks = ticks
     
-    def do_tock(self):
-        ticks = pygame.time.get_ticks()
-        if self.tock_done(ticks):
-            new_tock = self.backend.pop_tock()
-            if not (self.is_idle_tock(self.curr_tock) and self.is_idle_tock(new_tock)):
-                self.tock_begin_ticks = ticks
-                self.tock_duration = self.default_tock_duration if self.is_nonidle_tock(new_tock) else None
-            self.curr_tock = new_tock
-    
-    def tock_frac(self,ticks=None):
-        duration = self.tock_duration if self.is_nonidle_tock(self.curr_tock) else self.default_tock_duration
-        # print ( (ticks or pygame.time.get_ticks()) - self.tock_begin_ticks)/float(duration)
-        return ( (ticks or pygame.time.get_ticks()) - self.tock_begin_ticks)/float(duration)
-    
-    def tock_done(self, ticks):
-        if self.is_idle_tock(self.curr_tock):
-            return True
-        else:
-            return ticks >= self.tock_begin_ticks + self.tock_duration
-
-    def draw_all(self):
-        # if self.curr_tock: print self.curr_tock
+    def draw_all(self,ticks):
         self.screen.blit(self.background, (0, 0))
-        for tile_surface in self.backend.get_blit_surfaces( self.curr_tock, self.tock_frac(), self.tile_size() ):
+        for tile_surface in self.backend.get_blit_surfaces( self.frac(ticks), self.tile_size() ):
             tile_surface.blit_to( self.screen, self.get_screen_padding_lt() )
             
-    def handle_and_draw_menu(self):
+    def handle_and_draw_menu(self,ticks):
         if self.following_with_transitive_verb:
             if pygame.mouse.get_focused():
                 self.draw_transitive_menu(pygame.mouse.get_pos())
             return
-        hover_delay_ms, hover_off_delay_ms = 200, 200
-        if ( self.menu_pos and self.last_mouse_in_menu_time + hover_off_delay_ms < pygame.time.get_ticks()
+        hover_delay_ms, hover_off_delay_ms = 50, 200
+        if ( self.menu_pos and self.last_mouse_in_menu_time + hover_off_delay_ms < ticks
                            and pygame.mouse.get_focused() and not self.is_in_menu(pygame.mouse.get_pos()) ):
             self.menu_pos = None
-        if ((not self.menu_pos) and self.last_mouse_pos and self.last_mouse_time + hover_delay_ms < pygame.time.get_ticks()
+        if ((not self.menu_pos) and self.last_mouse_pos and self.last_mouse_time + hover_delay_ms < ticks
                 and pygame.mouse.get_focused() ):
             self.menu_pos = self.last_mouse_pos
             self.menu_obj = self.last_mouse_obj
-            self.last_mouse_in_menu_time = pygame.time.get_ticks()
+            self.last_mouse_in_menu_time = ticks
         if self.menu_pos:
             self.draw_menu(self.menu_pos)
 
-    def handle_event(self, event):
+    def handle_event(self, event, ticks):
         if log_file: # and event.type in (MOUSEBUTTONDOWN,MOUSEBUTTONUP,MOUSEMOTION,QUIT,KEYDOWN):
             my_event = Struct()
             my_event.type = event.type
@@ -163,22 +143,25 @@ class Frontend:
             dir_sets = ( (K_LEFT,K_RIGHT,K_UP,K_DOWN), (K_a,K_d,K_w,K_s) )
             dir_keys = "lrud"
             dir = first( dir for dir_set in dir_sets for K_,dir in zip(dir_set,dir_keys) if K_==event.key)
-            if dir:
-                self.backend.move_player(dir)
+            if self.backend.state_is_shortcircuitable():
+                self.advance_state(ticks)
+                if dir: self.backend.move_player(dir)
+            elif self.backend.state_is_chainable():
+                if dir: self.backend.move_player(dir)
         elif event.type == MOUSEMOTION:
             if self.following_with_transitive_verb:
                 self.transitive_verb_putative_objects = self.transitive_verb_objects + [curr_obj]
             else:
                 if curr_obj.is_hoverable():
                     self.last_mouse_pos = event.pos
-                    self.last_mouse_time = pygame.time.get_ticks()
+                    self.last_mouse_time = ticks
                     self.last_mouse_obj = curr_obj
                 else:
                     self.last_mouse_pos = None
                     self.last_mouse_tile_pos = None
                 self.menu_hit_idx = None
                 if self.menu_pos and self.is_in_menu(event.pos):
-                    self.last_mouse_in_menu_time = pygame.time.get_ticks()
+                    self.last_mouse_in_menu_time = ticks
                     for idx,hit_rect_struct in enumerate(self.menu_hit_rect_structs):
                         if hit_rect_struct.hit_rect.collidepoint(event.pos):
                             self.menu_hit_idx = idx
@@ -224,6 +207,9 @@ class Frontend:
                 # self.last_mouse_obj = tile_obj or tile_base
     
     def draw_menu(self,mouse_pos):
+        if not self.backend.state_is_shortcircuitable():
+            self.menu_hit_rect_structs = ()
+            return
         tile_pos = self.get_screen_from_tile_coords( self.get_tile_from_screen_coords(mouse_pos) )
         if self.draw_menu_around_tile_not_mouse:
             x_y = x,y = tile_pos + self.tile_size() / 2

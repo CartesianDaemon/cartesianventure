@@ -7,10 +7,12 @@ import src.room_data as room_data
 class Backend:
     def __init__(self):
         self.rules = Rules()
-        self.default_idle_tock = {}
-        self.curr_tock = self.default_idle_tock
+        self.default_idle_state = ({},{},dict(shortcircuitable=True))
+        self.curr_state = self.default_idle_state
         self.pending_subactions = {}
         self.last_player_move = ('','')
+        self.frac = 0
+        self.next_act = {}
 
     def load(self,filename):
         # TODO: need copy?
@@ -99,31 +101,39 @@ class Backend:
     def get_obj_at(self,pos):
         return self.curr_room.map.get_mapsquare_at(pos).get_combined_mainobj()
 
-    def pop_tock(self):
-        if self.last_player_move[0]:
-            self.player.x, self.player.y = self.player.map_pos() + offset_from_dir(self.last_player_move[0])
-            # # TODO: Use map.move_char()
-        self.last_player_move = ( self.last_player_move[1], '' )
-        ret = self.curr_tock
-        if self.pending_subactions:
-            raise NotImplementedError # TODO: pass next action to "do"
-        else:
-            self.curr_tock = self.default_idle_tock
-        return ret
+    def advance_state(self):
+        if self.curr_state[1]:
+            self.player.x, self.player.y = self.player.map_pos() + offset_from_dir(self.curr_state[1]['player_move'])
+            # TODO: Use map.move_char()
+        self.curr_state = self.default_idle_state
+        if self.next_act:
+            self.move_player(self.next_act['dir'])
+            self.next_act = {}
+    
+    # def state_is_modal(self):
+    #     return self.curr_state[2].get('modal')
+        
+    def state_is_shortcircuitable(self):
+        return self.curr_state[2].get('shortcircuitable')
+
+    def state_is_chainable(self):
+        return self.curr_state[2].get('chainable')
         
     def move_player(self,dir):
         assert dir in 'lrud'
-        if self.get_obj_at(self.player.map_pos() + offset_from_dir(dir)).walkable:
-            self.curr_tock = {(self.player.x,self.player.y,1,1):dir}
-            self.last_player_move = ( self.last_player_move[1], dir )
+        if self.state_is_chainable():
+            self.next_act = {'dir':dir}
+        else:
+            if self.get_obj_at(self.player.map_pos() + offset_from_dir(dir)).walkable:
+                self.curr_state = ({(self.player.x,self.player.y,1,1):dir},{'player_move':dir},dict(chainable=True))
 
-    def get_blit_surfaces(self, tock, frac, tile_size, window=Rect(0,0,15,7)):
+    def get_blit_surfaces(self, frac, tile_size, window=Rect(0,0,15,7)):
         blit_surfaces = []
         for stratum in self.curr_room.map.get_strata_by_rows():
             for row in stratum:
                 for obj_tuple in row:
                     for obj in obj_tuple:
-                        blit_surface = obj.get_surface( tile_size,tock,frac )
+                        blit_surface = obj.get_surface( tile_size,self.curr_state[0],frac )
                         blit_surface.add_external_offset( obj.map_pos()*tile_size )
                         blit_surfaces.append(blit_surface)
         return blit_surfaces
