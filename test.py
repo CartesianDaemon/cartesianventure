@@ -174,7 +174,7 @@ class TestFrontend(unittest.TestCase):
         self.frontend.splash(timeout_ms=10)
     
     def test_step(self):
-        self.frontend.loop_step()
+        self.frontend.loop_step(0)
         
     def test_playback(self):
         filenames = fnmatch.filter(os.listdir("."),"test*.eventlog.bin")
@@ -186,7 +186,7 @@ class TestFrontend(unittest.TestCase):
             try:
                 while True:
                     event = pickle.load(fh)
-                    my_frontend.handle_event(event)
+                    my_frontend.handle_event(event,0)
             except EOFError:
                 fh.close()
             print ""
