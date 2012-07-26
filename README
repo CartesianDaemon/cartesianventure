@@ -26,12 +26,13 @@ I don't know if I will complete the project or if it will go in this direction, 
  * A tile-based adventure game, where most of the puzzles are lucas-arts style "Use X with Y", but some of the gaps are filled in with chip's challenge "Push X in front of Y using properties known to be inherent in those objects in the game world."
 
  * With a full undo and redo, so you can have puzzles like "sneak into the mansion without waking the butler", without (a) the need to load from save if he wakes up or (b) requiring convoluted justifications why every action is reversible. And even have "you must pick this object up on the first screen to win", but if you don't, you don't have to replay everything, you can undo back to the beginning, do the extra action, and then redo all the way to the end, and as long as your new action doesn't prevent any of the others you took, all the actions will be rebased onto the current game state.
+
 I have made an effort to keep the code separated into comparatively loosely coupled components, and to make it explicable, but this is my first program of any kind in python, and there is no documentation as yet.
+ 
+There are a number of tests in tests.py. These test a reasonable (but not extensive) amount of the backend and helper functionality, but almost none of the frontend.
 
 It's unlikely to be useful to other people at this point, but if I abandon the project, I've done my best to see that the code exists in some form, just in case. Feel free to email me if you're interested in using any of the code.
 
-You can see some preliminary comments on my blog at:
-
- http://jack.dreamwidth.org/tag/cartesianventure
+You can see some preliminary comments on my blog at:http://jack.dreamwidth.org/tag/cartesianventure
  
 The code is open source, but I haven't decided exactly what license to use. Any non-commercial use with attribution is completely fine (although I would enjoy it if you let me know!)
