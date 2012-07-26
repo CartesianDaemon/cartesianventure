@@ -21,8 +21,8 @@ room = RoomDefinition()
 ##############################################################
 
 room.add_obj_templates( default_props = prop_defaults.floor,
-   # floorboards     = Obj("floor", graphic_source=RandGraphic("data/img_circ/VILFLR.bmp",  40, 41,40,40,str='2x',reps=6)),
-   floorboards     = Obj("floor", graphic_source=RandGraphic("data/img_test/floor.png")),
+   floorboards     = Obj("floor", graphic_source=RandGraphic("data/img_circ/VILFLR.bmp",  40, 41,40,40,str='2x',reps=6)),
+   # floorboards     = Obj("floor", graphic_source=RandGraphic("data/img_test/floor.png")),
    crazypaving     = Obj("floor", graphic_source=BaseGraphic("data/img_circ/GRS2ROC.bmp",120,161,40,40)),
    paving          = Obj("floor", graphic_source=RandGraphic("data/img_circ/PAVE.bmp",    40, 41,40,40,str='2x',reps=4)),
 )
@@ -47,7 +47,7 @@ init_map_str = """\
                
                
 ###############
-#.......W.....#
+#.........W...#
 #.............#
 #.............#
 #.............#

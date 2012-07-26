@@ -159,7 +159,7 @@ class Frontend:
             elif self.backend.state_is_chainable():
                 if dir: self.backend.start_move(dir)
         elif event.type == KEYUP:
-            self.recent_presses.remove(event.key)
+            if event.key in self.recent_presses: self.recent_presses.remove(event.key)
         elif event.type == MOUSEMOTION:
             if self.following_with_transitive_verb:
                 self.transitive_verb_putative_objects = self.transitive_verb_objects + [curr_obj]
