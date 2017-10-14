@@ -40,6 +40,14 @@ class Pack(Bunch):
         
 class Obj:
     def __init__(self,name,short_desc="",examine_text="",graphic_source=None,transparent=False):
+        # REFACTORING:
+        # - immutable state like graphics, actions and rules for derivation of walkable etc properties
+        #   should be uniquely determined by room data and ids
+        # - ids is a collection of strings, e.g. ("RED_KEY","KEY","Pickable")
+        # - any mutable or instance-specific state should be stored in named fields inside state
+        #   (e.g. lever position, facing)
+        # - combine context (eg. which adjacent walls walls connect to, or character facing) with that
+
         # Object descriptions
         self.key='' # set later by add_obj_templates
         self.name=name
