@@ -1,36 +1,4 @@
-# History
-#
-# 9 July 2012
-#
-# Added NotNone
-# Added splash screen
-# BaseGraphic takes value from img_circ file
-# Randomly chosen tiles for similar surfaces
-#
-# 10 July 2012
-#
-# Use tiles from Logic Garden
-# Including transparancy
-# Fix random tile to use rand based on seed, not hash (which preserves sequences mod 2)
-# Tile graphic based on context from adjacent tiles being the same
-# Draw floor under walls
-# Transparent walls
-# obj map
-#
-# 11 July 2012
-# 
-# Hover menu
-# 
-# 14 July 2012
-#
-# Verb menu, undo menu (nonfunctional), refactored mapsquare, minor fixes
-# Move on/onto. Verb blah with itself.
-# Fix capitalization. List of verbs from one place.
-# Examine verb. Intransitive verbs for fixed objects.
-#
-# 15 July 2012
-#
-# Much refactoring
+#! /usr/bin/env python
 
 import unittest
 import os
@@ -193,3 +161,37 @@ class TestFrontend(unittest.TestCase):
         
 if __name__ == '__main__':
     unittest.main(verbosity=2)
+# History
+#
+# 9 July 2012
+#
+# Added NotNone
+# Added splash screen
+# BaseGraphic takes value from img_circ file
+# Randomly chosen tiles for similar surfaces
+#
+# 10 July 2012
+#
+# Use tiles from Logic Garden
+# Including transparancy
+# Fix random tile to use rand based on seed, not hash (which preserves sequences mod 2)
+# Tile graphic based on context from adjacent tiles being the same
+# Draw floor under walls
+# Transparent walls
+# obj map
+#
+# 11 July 2012
+# 
+# Hover menu
+# 
+# 14 July 2012
+#
+# Verb menu, undo menu (nonfunctional), refactored mapsquare, minor fixes
+# Move on/onto. Verb blah with itself.
+# Fix capitalization. List of verbs from one place.
+# Examine verb. Intransitive verbs for fixed objects.
+#
+# 15 July 2012
+#
+# Much refactoring
+
