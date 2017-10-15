@@ -4,6 +4,9 @@ from src.obj import Obj
 from src.rules import Rules, Rule
 from map import Map, Layers
 
+# Standard modules
+import copy
+
 class Room:
     def __init__(self):
         self._rules = Rules()
@@ -15,5 +18,4 @@ class Room:
         return self._rules
 
     def copy(self):
-        # TODO: do actual copy
-        return self
+        return copy.deepcopy(self)

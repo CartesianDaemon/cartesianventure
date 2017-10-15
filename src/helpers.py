@@ -8,7 +8,10 @@ import random
 
 class Bunch(dict):
     def __getattr__(self, attr):
-        return self[attr]
+        try:
+            return self[attr]
+        except KeyError:
+            raise AttributeError(attr)
     def __setattr__(self, attr, val):
         self[attr] = val
 

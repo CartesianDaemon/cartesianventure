@@ -120,8 +120,18 @@ class TestBackend(unittest.TestCase):
     def do_verb(self,verb,x1,y1,x2,y2):
         self.backend_distillery.do(verb,self.obj_at(x1,y1),self.obj_at(x2,y2))
 
-    #@unittest.expectedFailure 
     def test_verb_move(self):
+        self.assertEquals(self.obj_at(6,4).key,'crucible')
+        self.do_verb('move', 6,4 , 7,4)
+        self.assertEquals(self.obj_at(6,4).name,'floor')
+        self.assertEquals(self.obj_at(7,4).key,'crucible')
+    
+    # Same test as before, in case we fail to deepcopy the room schema and accidentally alter it!
+    # Then separate tests don't work independently
+    def test_verb_move2(self):
+        self.test_verb_move()
+        
+    def test_verb_move_twice(self):
         self.assertEquals(self.obj_at(6,4).key,'crucible')
         self.do_verb('move', 6,4 , 7,4)
         self.assertEquals(self.obj_at(6,4).name,'floor')
@@ -135,6 +145,7 @@ class TestBackend(unittest.TestCase):
         self.assertEquals(len(self.obj_at(7,4).get_undoable_events()),1)
 
     def test_verb_use(self):
+        self.assertEquals(self.obj_at(6,4).key,'crucible')
         self.assertEquals(self.obj_at(10,3).key,'well')
         self.do_verb('use', 6,4 , 10,3)
         self.assertEquals(self.obj_at(6,4).key,'crucible_w')

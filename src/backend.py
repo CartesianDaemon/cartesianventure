@@ -17,7 +17,7 @@ class Backend:
 
     def load(self,filename):
         # TODO: need copy?
-        self.curr_room = room_data.load_room(filename)
+        self.curr_room = room_data.load_room(filename).copy()
         self.rules.update(self.curr_room.get_rules())
         self.player = self.curr_room.player
     
@@ -40,7 +40,9 @@ class Backend:
             if not rule:
                 self.do_default_rule_failure()
             else:
+                print(self.curr_room.map)
                 self._do_rule(rule,arg_objs)
+                print(self.curr_room.map)
     
     def do_undo(self,undo_event):
         print "UNDO"
