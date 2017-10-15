@@ -85,7 +85,6 @@ class TestBackend(unittest.TestCase):
         self.backend_distillery.load(default_room_filename)
         self.defs = room_data.load_room(default_room_filename).defs
 
-    @unittest.expectedFailure 
     def test_refactored_initialisation(self):
         pass
 
@@ -98,7 +97,6 @@ class TestBackend(unittest.TestCase):
     def test_contexts(self):
         self.assertEqual(self.obj_at(0,2).get_contexts(),('br',) )
     
-    #@unittest.expectedFailure 
     def test_verblist(self):
         crucible = self.defs.crucible
         crucible_w = self.defs.crucible_w
