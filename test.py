@@ -137,12 +137,10 @@ class TestBackend(unittest.TestCase):
         self.assertEquals(self.obj_at(6,4).name,'floor')
         self.assertEquals(self.obj_at(7,4).key,'crucible')
         self.do_verb('move', 7,4 , 8,3)
-        self.assertEquals(self.obj_at(7,4).key,'crucible')
+        self.assertEquals(self.obj_at(7,4).name,'floor')
+        self.assertEquals(self.obj_at(8,3).key,'crucible')
         self.assertEquals(len(self.obj_at(7,4).get_undoable_events()),0)
         self.assertEquals(len(self.obj_at(7,4).get_redoable_events()),0)
-        self.do_verb('use', 7,4 , 8,3)
-        self.assertEquals(self.obj_at(7,4).key,'crucible_w')
-        self.assertEquals(len(self.obj_at(7,4).get_undoable_events()),1)
 
     def test_verb_use(self):
         self.assertEquals(self.obj_at(6,4).key,'crucible')
