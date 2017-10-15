@@ -103,7 +103,7 @@ room.add_player(2,3,room.defs.marzie)
 room.add_obj_templates( default_props = prop_defaults.pickable,
     crucible  = Obj("crucible","An encrusted clay crucible", examine_text="There are some occult symbols engraved below",
                     graphic_source=BaseGraphic("data/img_circ/Bench.bmp",510,31,40,40,colorkey='topleft')),
-    crucible_w= Obj("crucible","A clay crucible full of water",
+    crucible_w= Obj("crucible_w","A clay crucible full of water",
                     graphic_source=BaseGraphic("data/img_circ/Bench.bmp",508,112,40,40,colorkey='topleft')),
 )
 

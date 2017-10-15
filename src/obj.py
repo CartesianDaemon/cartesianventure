@@ -43,7 +43,7 @@ class Obj:
         # REFACTORING:
         # - immutable state like graphics, actions and rules for derivation of walkable etc properties
         #   should be uniquely determined by room data and ids
-        # - ids is a collection of strings, e.g. ("RED_KEY","KEY","Pickable")
+        # - ids is a collection of strings, e.g. ("RED_KEY","KEY","Pickable") (is that .key or not?)
         # - any mutable or instance-specific state should be stored in named fields inside state
         #   (e.g. lever position, facing)
         # - combine context (eg. which adjacent walls walls connect to, or character facing) with that

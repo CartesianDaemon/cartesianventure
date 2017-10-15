@@ -98,6 +98,7 @@ class TestBackend(unittest.TestCase):
     def test_contexts(self):
         self.assertEqual(self.obj_at(0,2).get_contexts(),('br',) )
     
+    #@unittest.expectedFailure 
     def test_verblist(self):
         crucible = self.defs.crucible
         crucible_w = self.defs.crucible_w
@@ -119,8 +120,8 @@ class TestBackend(unittest.TestCase):
     def do_verb(self,verb,x1,y1,x2,y2):
         self.backend_distillery.do(verb,self.obj_at(x1,y1),self.obj_at(x2,y2))
 
-    @unittest.expectedFailure 
-    def test_verbs(self):
+    #@unittest.expectedFailure 
+    def test_verb_move(self):
         self.assertEquals(self.obj_at(6,4).key,'crucible')
         self.do_verb('move', 6,4 , 7,4)
         self.assertEquals(self.obj_at(6,4).name,'floor')
@@ -132,6 +133,12 @@ class TestBackend(unittest.TestCase):
         self.do_verb('use', 7,4 , 8,3)
         self.assertEquals(self.obj_at(7,4).key,'crucible_w')
         self.assertEquals(len(self.obj_at(7,4).get_undoable_events()),1)
+
+    def test_verb_use(self):
+        self.assertEquals(self.obj_at(10,3).key,'well')
+        self.do_verb('use', 6,4 , 10,3)
+        self.assertEquals(self.obj_at(6,4).key,'crucible_w')
+        self.assertEquals(len(self.obj_at(6,4).get_undoable_events()),1)
     
     def test_map_load(self):
         self.assertEquals(self.obj_at(1,4).key,'floorboards')

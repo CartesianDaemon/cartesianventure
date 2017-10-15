@@ -25,7 +25,7 @@ class MapSquare:
         # TODO: Deal with empty square without crashing?
         #return ( tuple(chain.from_iterable( stratum.get_obj_lst() for stratum in reversed(self.strata.values()) )) + (None,) )[0]
         return ( stratum.get_obj() for stratum in reversed(self.strata.values()) if stratum.get_obj() ).next()
-    
+
     def get_combined_lst(self):
         return chain.from_iterable( stratum.get_lst() for stratum in self.strata.values() )
 
