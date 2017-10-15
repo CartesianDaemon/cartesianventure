@@ -2,6 +2,7 @@
 
 import unittest
 import os
+import sys
 import fnmatch
 import pickle
 
@@ -136,6 +137,7 @@ class TestBackend(unittest.TestCase):
         self.assertEquals(self.obj_at(1,4).key,'floorboards')
         self.assertEquals(self.obj_at(0,4).key,'wall')
 
+@unittest.skipIf(len(sys.argv)>1,"skip frontend for quickness")
 class TestFrontend(unittest.TestCase):
     def setUp(self):
         self.frontend = Frontend(default_room='distillery')
@@ -163,7 +165,7 @@ class TestFrontend(unittest.TestCase):
             except EOFError:
                 fh.close()
             print ""
-        
+
 if __name__ == '__main__':
     unittest.main(verbosity=2)
 # History
