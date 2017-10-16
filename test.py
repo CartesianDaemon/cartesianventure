@@ -9,6 +9,7 @@ import pickle
 from src.backend import *
 from src.frontend import *
 from src.helpers import *
+from src.room import Room
 
 class TestSyntax(unittest.TestCase):
     def test_double_comprehension(self):
@@ -78,6 +79,14 @@ class TestHelpers(unittest.TestCase):
 #         #    var = Maybe(None)
 #         #    var.capitalize
 
+class TestMultipleImport(unittest.TestCase):
+    def test_a(self):
+        os.blah = "foo"
+        self.assertEquals(os.blah,"foo")
+    def test_b(self):
+        self.assertEquals(os.blah,"foo")
+
+
 class TestBackend(unittest.TestCase):
     def setUp(self):
         default_room_filename = 'distillery'
@@ -85,8 +94,71 @@ class TestBackend(unittest.TestCase):
         self.backend_distillery.load(default_room_filename)
         self.defs = room_data.load_room(default_room_filename).defs
 
+    @unittest.expectedFailure
     def test_refactored_initialisation(self):
-        pass
+        room = Room()
+
+        key = room.add_obj_spec("KEY", displayname="key", desc="")
+        self.assertIs(room.obj_specs["KEY"], key)
+        self.assertEquals(key.id,"KEY")
+        key.displayname="key" 
+
+        redkey = room.add_obj_spec("REDKEY",parents=("KEY"))
+        self.assertEquals(redkey.id,"REDKEY")
+        self.assertEquals(redkey.displayname, "key")
+        room.obj_specs["REDKEY"].displayname = "red key"
+        self.assertEquals(redkey.displayname, "red key")
+        room.obj_specs["REDKEY"].desc="An ornate key made from iron with a dull red tint."
+        room.obj_specs["REDKEY"].graphic=Graphics()
+        room.obj_specs["REDKEY"].state={'bent':False}
+        
+        bluekey = room.add_obj_spec("BLUEKEY", parents=("KEY"))
+        self.assertEquals(bluekey.displayname,"key")
+        room.obj_specs["BLUEKEY"].desc="An thick iron key with a wavey watery tint."
+        room.obj_specs["BLUEKEY"].graphic=Graphics()
+        room.obj_specs["BLUEKEY"].state={'bent':False}
+
+        room.add_obj_spec("COPIEDREDKEY", parents=("REDKEY"))
+        self.assertEquals(copiedredkey.displayname,"red key")
+        # TODO: Test other properties of COPIEDREDKEY
+
+        # TODO: test using function as desc or other member
+
+        room.add_obj_spec("BENT", state={'bent':True}, desc=ModifedDescription(append=" It's bent too much to use."))
+        
+        bluekey_b = room.get_obj_from_spec("BLUEKEY")
+        # TODO: Compare bluekey2 to previous expected values
+
+        # Create object from combination of specs with no extra details
+        # No way of referring back to this particular spec except by specifying those ids again
+        bent_redkey = room.get_obj_from_spec("BENT","REDKEY") 
+        # TODO: Test properties of bent_redkey as expected
+
+        # An object created spontaneously that doesn't match anything particular. More useful for scenery than keys.
+        decoykey = room.get_obj_from_spec("KEY",desc="I've no idea what this key fits, it could be anywhere",graphics=Graphics()) 
+        # TODO: Test properties of decoykey
+
+        # And a one-off object made from a combining object and another object
+        bent_bluekey = room.get_obj_from_spec("BENT","BLUEKEY")
+
+        room.add_map(
+            "##########",
+            "#  1 *   #", {'*': redkey},
+            "#  *   2 #", {'*': bluekey},
+            "#   3*   #", {'*': decoykey},
+            "##########",
+            {
+                '#': room.add_obj_spec("WALL"),
+                ' ': room.add_obj_spec("FLOOR"),
+                '1': redkey,
+                '2': bluekey,
+                '3': decoykey,
+            }
+
+            # TODO: Decide how to handle layers!
+            # TODO: Decide how to handle {} interpreting chaarcters that might already have been interpreted, add warning function?
+        
+        )
 
     def test_1setup(self):
         pass
