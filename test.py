@@ -143,9 +143,9 @@ class TestBackend(unittest.TestCase):
 
         room.add_map(
             "##########",
-            "#  1 *   #", {'*': redkey},
-            "#  *   2 #", {'*': bluekey},
-            "#   3*   #", {'*': decoykey},
+            "#  1 *   #", {'*': room.obj_specs["REDKEY"]},
+            "#  *   2 #", {'*': room.obj_specs["BLUEKEY"]},
+            "#   3*   #", {'*': decoykey}, # TODO: Decide what function is right here, create spec not obj?
             "##########",
             {
                 '#': room.add_obj_spec("WALL"),
@@ -155,8 +155,15 @@ class TestBackend(unittest.TestCase):
                 '3': decoykey,
             }
 
-            # TODO: Decide how to handle layers!
-            # TODO: Decide how to handle {} interpreting chaarcters that might already have been interpreted, add warning function?
+        # TODO: Decide how to handle layers!
+        # TODO: Decide how to handle {} interpreting chaarcters that might already have been interpreted, add warning function?
+        
+        # TODO: Add rules
+
+        # TODO: Create room from room...?
+
+        # TODO: Create two rooms, test them separately
+
         
         )
 
