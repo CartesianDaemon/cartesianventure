@@ -1,6 +1,7 @@
 # Standard modules
 from itertools import izip_longest, chain
 import copy
+import collections
 
 # Internal modules
 from helpers import *
@@ -37,7 +38,77 @@ class Verb:
 
 class Pack(Bunch):
     pass
-        
+
+# Contains all immutable properties of object, graphics, etc
+# And optionally initial state
+# Includes id which uniquely identifies it so it can be recreated from a room spec
+# Saving an object constitutes saving the id of the obj spec and the state
+class ObjSpec2:
+    def __init__(self, other=None):
+        self.properties = dict()
+        self.properties["id"]= None
+        self.properties["ids"] = {} # including this id and all parents
+        self.properties["displayname"] = None
+        self.properties["desc"] = None # Should this be here or in rules?
+        self.properties["graphic"] = None
+        self.properties["stratum"] = None
+        self.state = {}
+        if other is not None:
+            self.update(other)
+    def update(self, other):
+        if isinstance(other,ObjSpec2) or isinstance(other,Obj2):
+            self._update_properties(other.properties)
+            self._update_state(other.state)
+        else isinstance(other,collections.Mappable):
+            self._update_properties( { k:other[k] for k in other if k!='state'} )
+            self._update_state(other['state'])
+        self.validate()
+    def _update_properties(self, p):
+        assert p['id'] # Changing other properties should always carry a new id
+        for k,v in p.items():
+            if isinstance(v,ObjValInheritor):
+                self.properties[k] = v(self.properties[k])
+            elif k=="ids":
+                self.properties[k] += v
+            else:
+                self.properties[p] = v
+    def _update_state(self, s):
+        if s:
+            # TODO: put ObjValInheritor here
+            self.state.update(s)
+    def validate(self):
+        assert self.id != "" and isinstance(self.id,str)
+        for k,v in self.properties:
+            assert v is not None
+            if callable(v):
+                assert isinstance(v,ObjValCalculator)
+            # TODO: check state dict
+        # TODO: Check no 'extra' properties, or not?
+
+class Obj2:
+    def __init__(self, spec, state={})
+        self.obj_spec = spec
+        self.state = state
+
+# Used in constructing an obj spec to calculate a value from a parent obj spec
+# In theory should be a pure virtual base type etc
+
+class ObjValInheritor:
+    def __init__(self, **kwargs):
+        self.append = kwargs['append']
+        if self.append is not None:
+            "foo" + self.append # Test it can be applied successfully
+    def __call__(self,arg):
+        if self.append is not None:
+            return arg + self.append
+        else:
+            assert False
+
+# Used for a property in an obj spec, e.g. walkable if state['open']==True
+
+class ObjValCalculator:
+    pass
+ 
 class Obj:
     def __init__(self,name,short_desc="",examine_text="",graphic_source=None,transparent=False):
         # REFACTORING:

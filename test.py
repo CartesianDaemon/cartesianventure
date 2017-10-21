@@ -96,12 +96,18 @@ class TestBackend(unittest.TestCase):
 
     @unittest.expectedFailure
     def test_refactored_initialisation(self):
-        room = Room()
+        room = RoomSpec2()
 
-        key = room.add_obj_spec("KEY", displayname="key", desc="")
+        room.add_obj_spec("Pickable",pickable=True,pushable=True,Hoverable=True,Walkable=True, stratum='obj') # aka Moveable anything you can pick up/move anywhere
+        room.add_obj_spec("Pushable",pushable=True,Hoverable=True,Walkable=True, stratum='obj') # Can push but not move arbitrarily
+        room.add_obj_spec("Fixed",Hoverable=True, stratum='wall') # e.g. scenery you can't move but can interact with
+        room.add_obj_spec("Floor",Walkable=True, stratum='floor') # Can walk, can't interact
+        room.add_obj_spec("Wall",stratum='wall') # Can't walk, can't interact
+
+        key = room.add_obj_spec("KEY", "Pickable", displayname="key", desc="")
         self.assertIs(room.obj_specs["KEY"], key)
         self.assertEquals(key.id,"KEY")
-        key.displayname="key" 
+        key.displayname="key"
 
         redkey = room.add_obj_spec("REDKEY",parents=("KEY"))
         self.assertEquals(redkey.id,"REDKEY")
@@ -112,11 +118,12 @@ class TestBackend(unittest.TestCase):
         room.obj_specs["REDKEY"].graphic=Graphics()
         room.obj_specs["REDKEY"].state={'bent':False}
         
-        bluekey = room.add_obj_spec("BLUEKEY", parents=("KEY"))
+        bluekey = room.add_obj_spec("BLUEKEY", "KEY")
         self.assertEquals(bluekey.displayname,"key")
         room.obj_specs["BLUEKEY"].desc="An thick iron key with a wavey watery tint."
         room.obj_specs["BLUEKEY"].graphic=Graphics()
         room.obj_specs["BLUEKEY"].state={'bent':False}
+        # TODO: test ???? bluekey.
 
         room.add_obj_spec("COPIEDREDKEY", parents=("REDKEY"))
         self.assertEquals(copiedredkey.displayname,"red key")
@@ -134,26 +141,39 @@ class TestBackend(unittest.TestCase):
         bent_redkey = room.get_obj_from_spec("BENT","REDKEY") 
         # TODO: Test properties of bent_redkey as expected
 
-        # An object created spontaneously that doesn't match anything particular. More useful for scenery than keys.
-        decoykey = room.get_obj_from_spec("KEY",desc="I've no idea what this key fits, it could be anywhere",graphics=Graphics()) 
+        # An anonymous object created spontaneously that doesn't match anything particular. More useful for scenery than keys.
+        decoykey = room.add_obj_spec("","KEY",desc="I've no idea what this key fits, it could be anywhere",graphics=Graphics()) 
         # TODO: Test properties of decoykey
 
         # And a one-off object made from a combining object and another object
-        bent_bluekey = room.get_obj_from_spec("BENT","BLUEKEY")
+        bent_bluekey = room.add_obj_spec("","BENT","BLUEKEY")
 
         room.add_map(
             "##########",
             "#  1 *   #", {'*': room.obj_specs["REDKEY"]},
             "#  *   2 #", {'*': room.obj_specs["BLUEKEY"]},
-            "#   3*   #", {'*': decoykey}, # TODO: Decide what function is right here, create spec not obj?
+            "#   3*   #", {'*': decoykey},
             "##########",
             {
-                '#': room.add_obj_spec("WALL"),
-                ' ': room.add_obj_spec("FLOOR"),
+                '#': room.add_obj_spec("WALL", "Wall", graphic=Graphics()),
                 '1': redkey,
                 '2': bluekey,
                 '3': decoykey,
             }
+        )
+
+        room.add_map(
+            "          ",
+            "          ",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            "..........",
+            {
+                '.': room.add_obj_spec("FLOORBOARDS", "Floor", graphic=Graphics())
+            }
+        )
 
         # TODO: Decide how to handle layers!
         # TODO: Decide how to handle {} interpreting chaarcters that might already have been interpreted, add warning function?
@@ -164,8 +184,7 @@ class TestBackend(unittest.TestCase):
 
         # TODO: Create two rooms, test them separately
 
-        
-        )
+        # TODO: Test floor, obj, wall appear correctly
 
     def test_1setup(self):
         pass
