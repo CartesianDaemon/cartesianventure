@@ -46,12 +46,16 @@ class Pack(Bunch):
 class ObjSpec2:
     def __init__(self, other=None):
         self.properties = dict()
-        self.properties["id"]= None
-        self.properties["ids"] = {} # including this id and all parents
+        self.properties["id"]= None # UPPER for objects that could be instantiated, Initcase for pure base classes (and mixins?)
+        self.properties["ids"] = set() # including this id and all parents
         self.properties["displayname"] = None
         self.properties["desc"] = None # Should this be here or in rules?
         self.properties["graphic"] = None
         self.properties["stratum"] = None
+        self.properties["pickable"] = None
+        self.properties["pushable"] = None
+        self.properties["hoverable"] = None
+        self.properties["walkable"] = None
         self.state = {}
         if other is not None:
             self.update(other)
@@ -59,34 +63,42 @@ class ObjSpec2:
         if isinstance(other,ObjSpec2) or isinstance(other,Obj2):
             self._update_properties(other.properties)
             self._update_state(other.state)
-        else isinstance(other,collections.Mappable):
+        elif isinstance(other,collections.Mapping):
             self._update_properties( { k:other[k] for k in other if k!='state'} )
-            self._update_state(other['state'])
+            if 'state' in other:
+                self._update_state(other['state'])
+        else:
+            assert False
         self.validate()
     def _update_properties(self, p):
         assert p['id'] # Changing other properties should always carry a new id
         for k,v in p.items():
-            if isinstance(v,ObjValInheritor):
+            if k in self.properties and self.properties[k] is not None and isinstance(v,ObjValInheritor):
                 self.properties[k] = v(self.properties[k])
             elif k=="ids":
-                self.properties[k] += v
+                self.properties[k] |= set(v)
             else:
-                self.properties[p] = v
+                self.properties[k] = v
     def _update_state(self, s):
         if s:
             # TODO: put ObjValInheritor here
             self.state.update(s)
     def validate(self):
-        assert self.id != "" and isinstance(self.id,str)
-        for k,v in self.properties:
-            assert v is not None
-            if callable(v):
-                assert isinstance(v,ObjValCalculator)
-            # TODO: check state dict
-        # TODO: Check no 'extra' properties, or not?
+        assert self.key() != "" and isinstance(self.key(),str)
+        if self.key().isupper():
+            for k,v in self.properties.items():
+                assert v is not None
+                if callable(v):
+                    assert isinstance(v,ObjValCalculator)
+                # TODO: check state dict
+        # TODO: Check no 'extra' properties once we've added pickable etc (?) or other way of avoiding oopses (?)
+    def key(self):
+        return self.properties['id']
+    def displayname(self):
+        return self.properties['displayname']
 
 class Obj2:
-    def __init__(self, spec, state={})
+    def __init__(self, spec, state={}):
         self.obj_spec = spec
         self.state = state
 
@@ -103,6 +115,11 @@ class ObjValInheritor:
             return arg + self.append
         else:
             assert False
+
+# TODO: Move these specific helpers to room definition?
+class ModifiedVal(ObjValInheritor):
+    def __init__(self,**kwargs):
+        ObjValInheritor.__init__(self,**kwargs)
 
 # Used for a property in an obj spec, e.g. walkable if state['open']==True
 

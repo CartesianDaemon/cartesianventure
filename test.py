@@ -9,7 +9,9 @@ import pickle
 from src.backend import *
 from src.frontend import *
 from src.helpers import *
-from src.room import Room
+from src.room import *
+from src.graphic_source import *
+from src.obj import *
 
 class TestSyntax(unittest.TestCase):
     def test_double_comprehension(self):
@@ -94,60 +96,64 @@ class TestBackend(unittest.TestCase):
         self.backend_distillery.load(default_room_filename)
         self.defs = room_data.load_room(default_room_filename).defs
 
-    @unittest.expectedFailure
-    def test_refactored_initialisation(self):
+    def test_add_obj_spec(self):
         room = RoomSpec2()
+        self.room = room
 
-        room.add_obj_spec("Pickable",pickable=True,pushable=True,Hoverable=True,Walkable=True, stratum='obj') # aka Moveable anything you can pick up/move anywhere
-        room.add_obj_spec("Pushable",pushable=True,Hoverable=True,Walkable=True, stratum='obj') # Can push but not move arbitrarily
-        room.add_obj_spec("Fixed",Hoverable=True, stratum='wall') # e.g. scenery you can't move but can interact with
-        room.add_obj_spec("Floor",Walkable=True, stratum='floor') # Can walk, can't interact
-        room.add_obj_spec("Wall",stratum='wall') # Can't walk, can't interact
+        room.add_obj_spec("pickable",pickable=True,pushable=True,hoverable=True,walkable=True, stratum='obj') # aka Moveable anything you can pick up/move anywhere
+        room.add_obj_spec("pushable",pushable=True,hoverable=True,walkable=True, stratum='obj') # Can push but not move arbitrarily
+        room.add_obj_spec("fixed",hoverable=True, stratum='wall') # e.g. scenery you can't move but can interact with
+        room.add_obj_spec("floor",walkable=True, stratum='floor') # Can walk, can't interact
+        room.add_obj_spec("wall",stratum='wall') # Can't walk, can't interact
 
-        key = room.add_obj_spec("KEY", "Pickable", displayname="key", desc="")
-        self.assertIs(room.obj_specs["KEY"], key)
-        self.assertEquals(key.id,"KEY")
+        key = room.add_obj_spec("Key", "pickable", displayname="key", desc="")
+        # self.assertEquals(room.obj_specs["Key"], key)
+        self.assertEquals(key.key(),"Key")
         key.displayname="key"
 
-        redkey = room.add_obj_spec("REDKEY",parents=("KEY"))
-        self.assertEquals(redkey.id,"REDKEY")
-        self.assertEquals(redkey.displayname, "key")
-        room.obj_specs["REDKEY"].displayname = "red key"
-        self.assertEquals(redkey.displayname, "red key")
-        room.obj_specs["REDKEY"].desc="An ornate key made from iron with a dull red tint."
-        room.obj_specs["REDKEY"].graphic=Graphics()
-        room.obj_specs["REDKEY"].state={'bent':False}
+        redkey = room.add_obj_spec("REDKEY","Key",
+            displayname = "red key",
+            desc="An ornate key made from iron with a dull red tint.",
+            graphic="FAKEGraphics()",
+            state={'bent':False},
+        )
+        self.assertEquals(redkey.key(),"REDKEY")
+        self.assertEquals(redkey.displayname(), "red key")
         
-        bluekey = room.add_obj_spec("BLUEKEY", "KEY")
-        self.assertEquals(bluekey.displayname,"key")
-        room.obj_specs["BLUEKEY"].desc="An thick iron key with a wavey watery tint."
-        room.obj_specs["BLUEKEY"].graphic=Graphics()
-        room.obj_specs["BLUEKEY"].state={'bent':False}
+        bluekey = room.add_obj_spec("BLUEKEY", "Key",
+            desc="An thick iron key with a wavey watery tint.",
+            graphic="FAKEGraphics()",
+            state={'bent':False},
+        )
+        self.assertEquals(bluekey.displayname(),"key")
         # TODO: test ???? bluekey.
 
-        room.add_obj_spec("COPIEDREDKEY", parents=("REDKEY"))
-        self.assertEquals(copiedredkey.displayname,"red key")
+        copiedredkey = room.add_obj_spec("COPIEDREDKEY", "REDKEY")
+        self.assertEquals(copiedredkey.displayname(),"red key")
         # TODO: Test other properties of COPIEDREDKEY
 
         # TODO: test using function as desc or other member
 
-        room.add_obj_spec("BENT", state={'bent':True}, desc=ModifedDescription(append=" It's bent too much to use."))
+        room.add_obj_spec("Bent", state={'bent':True}, desc=ModifiedVal(append=" It's bent too much to use."))
         
-        bluekey_b = room.get_obj_from_spec("BLUEKEY")
+        # bluekey_b = room.get_obj_from_spec("BLUEKEY")
         # TODO: Compare bluekey2 to previous expected values
 
         # Create object from combination of specs with no extra details
         # No way of referring back to this particular spec except by specifying those ids again
-        bent_redkey = room.get_obj_from_spec("BENT","REDKEY") 
+        bent_redkey = room.add_obj_spec("","Bent","REDKEY") 
         # TODO: Test properties of bent_redkey as expected
 
         # An anonymous object created spontaneously that doesn't match anything particular. More useful for scenery than keys.
-        decoykey = room.add_obj_spec("","KEY",desc="I've no idea what this key fits, it could be anywhere",graphics=Graphics()) 
+        decoykey = room.add_obj_spec("","Key",desc="I've no idea what this key fits, it could be anywhere",graphics="FAKEGraphics()") 
         # TODO: Test properties of decoykey
 
         # And a one-off object made from a combining object and another object
-        bent_bluekey = room.add_obj_spec("","BENT","BLUEKEY")
+        bent_bluekey = room.add_obj_spec("","Bent","BLUEKEY")
 
+    @unittest.expectedFailure
+    def test_add_map(self):
+        self.test_add_obj_spec()
         room.add_map(
             "##########",
             "#  1 *   #", {'*': room.obj_specs["REDKEY"]},
@@ -155,7 +161,7 @@ class TestBackend(unittest.TestCase):
             "#   3*   #", {'*': decoykey},
             "##########",
             {
-                '#': room.add_obj_spec("WALL", "Wall", graphic=Graphics()),
+                '#': room.add_obj_spec("WALL", "wall", graphic="FAKEGraphics()"),
                 '1': redkey,
                 '2': bluekey,
                 '3': decoykey,
@@ -171,7 +177,7 @@ class TestBackend(unittest.TestCase):
             "..........",
             "..........",
             {
-                '.': room.add_obj_spec("FLOORBOARDS", "Floor", graphic=Graphics())
+                '.': room.add_obj_spec("FLOORBOARDS", "floor", graphic="FAKEGraphics()")
             }
         )
 
