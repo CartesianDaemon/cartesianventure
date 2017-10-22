@@ -52,10 +52,12 @@ class ObjSpec2:
         self.properties["desc"] = None # Should this be here or in rules?
         self.properties["graphic"] = None
         self.properties["stratum"] = None
-        self.properties["pickable"] = None
-        self.properties["pushable"] = None
-        self.properties["hoverable"] = None
-        self.properties["walkable"] = None
+        self.properties["pickable"] = False
+        self.properties["pushable"] = False
+        self.properties["hoverable"] = False
+        self.properties["walkable"] = False
+        self.properties["character"] = False
+        self.properties["playable"] = False
         self.state = {}
         if other is not None:
             self.update(other)
