@@ -8,17 +8,20 @@ from src.helpers import *
 class MapSquare:
     def __init__(self,floor_layers,obj_layers,char_layers,wall_layers):
         self.strata = OrderedDict()
-        self.strata['floor_layers'] = floor_layers
-        self.strata['obj_layers'  ] = obj_layers
-        self.strata['char_layers' ] = char_layers
-        self.strata['wall_layers' ] = wall_layers
+        self.strata['floor'] = floor_layers
+        self.strata['obj'  ] = obj_layers
+        self.strata['char' ] = char_layers
+        self.strata['wall' ] = wall_layers
     
     # TODO: Refactor this into a general "add object at" functionality
     def get_obj_layers(self):
-        return self.strata['obj_layers']
+        return self.strata['obj']
     
     def get_char_layers(self):
-        return self.strata['char_layers']
+        return self.strata['char']
+
+    def get_stratum_layers(self,stratum):
+        return self.strata[stratum]
 
     def get_combined_mainobj(self):
         # TODO: Do something different if top object isn't always "main" one, eg. overlay of smoke, water, etc
@@ -42,6 +45,9 @@ class Layers:
         
     def get_obj_lst(self):
         return self.obj or ()
+
+    def add_obj(self, new_obj):
+        self.set_obj(new_obj)
         
     def set_obj(self, new_obj):
         assert len(self.lst) == 0
@@ -57,8 +63,24 @@ class Layers:
         
 class Map:
     def __init__(self):
-        self.obj_map = None
+        self.map_squares = []
+
+    def width(self):
+        return len(max(self.map_squares, key=len)) if len(self.map_squares)>0 else 0
     
+    def height(self):
+        return len(self.map_squares) 
+
+    def _expand_to_include(self, x, y):
+        self.map_squares += [[]] * (y-len(self.map_squares))
+        self.map_squares[y] += [MapSquare(Layers(),Layers(),Layers(),Layers())] * (x-len(self.map_squares[y]))
+    
+    def add_obj_at(self,x,y,obj):
+        assert x>=0 and y>=0
+        stratum = obj.properties['stratum']
+        self._expand_to_include(x,y)
+        self.map_squares[y][x].add_obj(obj)
+
     def make_map_from_tuples(self,init_map_tuples):
         self.map_squares = [ [ MapSquare( Layers(tup[0]), Layers(), Layers(), Layers(*tup[1:2]) ) for tup in row ] for row in init_map_tuples]
         for x,y,map_square in enumerate_2d(self.map_squares):
@@ -82,7 +104,7 @@ class Map:
         return 0 <= pos[0] < self.map_size()[0] and 0 <= pos[1] < self.map_size()[1]
         
     def map_size(self):
-        return (len(self.map_squares[0]),len(self.map_squares))
+        return (self.width(),self.height())
         
     def create_obj_at(self,x,y,obj):
         obj.x, obj.y = x, y
