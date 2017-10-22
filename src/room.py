@@ -3,6 +3,7 @@ from src.helpers import *
 from src.obj import Obj, Obj2, ObjSpec2
 from src.rules import Rules, Rule
 from map import Map, Layers
+import collections
 
 # Standard modules
 import copy
@@ -32,6 +33,23 @@ class RoomSpec2:
         obj_spec.update(dict(id=id,ids=(id,)+parents,**kwargs))
         self.obj_specs[id] = obj_spec
         return obj_spec
+    def add_map(self,*args):
+        new_objs = []
+        for arg in args:
+            if isinstance(arg,str):
+                new_objs.append( [c for c in arg] )
+            elif isinstance(arg,collections.Mapping):
+                for c,spec in arg.items():
+                    assert isinstance(c, str) and len(c)==1
+                    for x,y,item in enumerate_2d(new_objs):
+                        if item==c:
+                            new_objs[y][x] = spec
+            else:
+                assert False
+        for x,y,spec in enumerate_2d(new_objs):
+            if spec!=' ':
+                assert isinstance(spec,ObjSpec2)
+                self.map.add_obj_at(x,y,spec)
 
 class Room:
     def __init__(self):

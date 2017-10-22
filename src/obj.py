@@ -59,6 +59,7 @@ class ObjSpec2:
         self.properties["character"] = False
         self.properties["playable"] = False
         self.state = {}
+        self.context = '' # TODO: Replace with dict of which 'adj' is one member (?)
         if other is not None:
             self.update(other)
     def update(self, other):
@@ -101,6 +102,7 @@ class ObjSpec2:
 
 class Obj2:
     def __init__(self, spec, state={},context=''):
+        # TODO: Create from obj or spec?
         self.obj_spec = spec
         self.state = dict(spec.state)
         self.state.update(state)

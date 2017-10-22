@@ -96,9 +96,8 @@ class TestBackend(unittest.TestCase):
         self.backend_distillery.load(default_room_filename)
         self.defs = room_data.load_room(default_room_filename).defs
 
-    def test_add_obj_spec(self):
+    def test_add_obj_spec_and_map(self):
         room = RoomSpec2()
-        self.room = room
 
         room.add_obj_spec("pickable",pickable=True,pushable=True,hoverable=True,walkable=True, stratum='obj') # aka Moveable anything you can pick up/move anywhere
         room.add_obj_spec("pushable",pushable=True,hoverable=True,walkable=True, stratum='obj') # Can push but not move arbitrarily
@@ -151,9 +150,6 @@ class TestBackend(unittest.TestCase):
         # And a one-off object made from a combining object and another object
         bent_bluekey = room.add_obj_spec("","Bent","BLUEKEY")
 
-    @unittest.expectedFailure
-    def test_add_map(self):
-        self.test_add_obj_spec()
         room.add_map(
             "##########",
             "#  1 *   #", {'*': room.obj_specs["REDKEY"]},
@@ -161,7 +157,7 @@ class TestBackend(unittest.TestCase):
             "#   3*   #", {'*': decoykey},
             "##########",
             {
-                '#': room.add_obj_spec("WALL", "wall", graphic="FAKEGraphics()"),
+                '#': room.add_obj_spec("WALL", "wall", displayname="wall", desc="A wall", graphic="FAKEGraphics()"),
                 '1': redkey,
                 '2': bluekey,
                 '3': decoykey,
@@ -177,9 +173,11 @@ class TestBackend(unittest.TestCase):
             "..........",
             "..........",
             {
-                '.': room.add_obj_spec("FLOORBOARDS", "floor", graphic="FAKEGraphics()")
+                '.': room.add_obj_spec("FLOORBOARDS", "floor", displayname="floor", desc="Bare floorboards", graphic="FAKEGraphics()")
             }
         )
+
+        # TODO: Test that an object without a necessary property throws an error
 
         # TODO: Decide how to handle layers!
         # TODO: Decide how to handle {} interpreting chaarcters that might already have been interpreted, add warning function?

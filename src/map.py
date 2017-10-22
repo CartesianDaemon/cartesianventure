@@ -3,6 +3,7 @@ from collections import OrderedDict
 from itertools import chain
 
 # Internal modules
+from src.obj import Obj2
 from src.helpers import *
 
 class MapSquare:
@@ -22,6 +23,9 @@ class MapSquare:
 
     def get_stratum_layers(self,stratum):
         return self.strata[stratum]
+
+    def add_obj(self,new_obj,stratum):
+        self.strata[stratum].add_obj(new_obj)
 
     def get_combined_mainobj(self):
         # TODO: Do something different if top object isn't always "main" one, eg. overlay of smoke, water, etc
@@ -72,14 +76,17 @@ class Map:
         return len(self.map_squares) 
 
     def _expand_to_include(self, x, y):
-        self.map_squares += [[]] * (y-len(self.map_squares))
-        self.map_squares[y] += [MapSquare(Layers(),Layers(),Layers(),Layers())] * (x-len(self.map_squares[y]))
+        self._expand_to_equal(x+1,y+1)
+
+    def _expand_to_equal(self, w, h):
+        self.map_squares += [[]] * (h-len(self.map_squares))
+        self.map_squares[h-1] += [MapSquare(Layers(),Layers(),Layers(),Layers())] * (w-len(self.map_squares[h-1]))
  
     def add_obj_at(self,x,y,spec,stratum=None):
         assert x>=0 and y>=0
-        stratum = stratum or obj.properties['stratum']
+        stratum = stratum or spec.properties['stratum']
         self._expand_to_include(x,y)
-        self.map_squares[y][x].add_obj(Obj2(spec))
+        self.map_squares[y][x].add_obj(Obj2(spec),stratum)
 
     def make_map_from_tuples(self,init_map_tuples):
         self.map_squares = [ [ MapSquare( Layers(tup[0]), Layers(), Layers(), Layers(*tup[1:2]) ) for tup in row ] for row in init_map_tuples]
