@@ -69,6 +69,20 @@ class Map:
     def __init__(self):
         self.map_squares = []
 
+    def __repr__(self):
+        ret = "Map["
+        if len(self.map_squares)>1:
+            ret += "\n"
+        for row in self.map_squares:
+            ret += "["
+            for sq in row:
+               ret += str(list(sq.get_combined_lst()))
+            if len(self.map_squares)>1:
+                ret += "\n"
+        ret += "]"
+        return ret
+
+
     def width(self):
         return len(max(self.map_squares, key=len)) if len(self.map_squares)>0 else 0
     
@@ -79,14 +93,18 @@ class Map:
         self._expand_to_equal(x+1,y+1)
 
     def _expand_to_equal(self, w, h):
-        self.map_squares += [[]] * (h-len(self.map_squares))
-        self.map_squares[h-1] += [MapSquare(Layers(),Layers(),Layers(),Layers())] * (w-len(self.map_squares[h-1]))
+        while len(self.map_squares)<h:
+            self.map_squares.append( [] )
+        while len(self.map_squares[h-1])<w:
+            self.map_squares[h-1].append( MapSquare(Layers(),Layers(),Layers(),Layers()) )
  
     def add_obj_at(self,x,y,spec,stratum=None):
         assert x>=0 and y>=0
         stratum = stratum or spec.properties['stratum']
         self._expand_to_include(x,y)
-        self.map_squares[y][x].add_obj(Obj2(spec),stratum)
+        obj = Obj2(spec)
+        obj.x, obj.y = x, y
+        self.map_squares[y][x].add_obj(obj,stratum)
 
     def make_map_from_tuples(self,init_map_tuples):
         self.map_squares = [ [ MapSquare( Layers(tup[0]), Layers(), Layers(), Layers(*tup[1:2]) ) for tup in row ] for row in init_map_tuples]

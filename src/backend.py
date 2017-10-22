@@ -40,9 +40,9 @@ class Backend:
             if not rule:
                 self.do_default_rule_failure()
             else:
-                print(self.curr_room.map)
+                # print(self.curr_room.map)
                 self._do_rule(rule,arg_objs)
-                print(self.curr_room.map)
+                # print(self.curr_room.map)
     
     def do_undo(self,undo_event):
         print "UNDO"

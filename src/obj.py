@@ -62,6 +62,8 @@ class ObjSpec2:
         self.context = '' # TODO: Replace with dict of which 'adj' is one member (?)
         if other is not None:
             self.update(other)
+    def __repr__(self):
+        return "<<ObjSpec2:"+self.properties['id']+">>"
     def update(self, other):
         if isinstance(other,ObjSpec2) or isinstance(other,Obj2):
             self._update_properties(other.properties)
@@ -103,10 +105,12 @@ class ObjSpec2:
 class Obj2:
     def __init__(self, spec, state={},context=''):
         # TODO: Create from obj or spec?
-        self.obj_spec = spec
+        self.properties = spec.properties
         self.state = dict(spec.state)
         self.state.update(state)
         self.context = spec.context + context
+    def __repr__(self):
+        return "<<Obj2:"+self.properties['id']+">>"
     def get_contexts(self):
         return (self.context,) if self.context else ()
     def key(self):

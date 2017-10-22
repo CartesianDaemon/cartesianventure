@@ -151,6 +151,8 @@ class TestBackend(unittest.TestCase):
         bent_bluekey = room.add_obj_spec("","Bent","BLUEKEY")
 
         room.add_map(
+            "          ",
+            "          ",
             "##########",
             "#  1 *   #", {'*': room.obj_specs["REDKEY"]},
             "#  *   2 #", {'*': room.obj_specs["BLUEKEY"]},
