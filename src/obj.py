@@ -100,9 +100,17 @@ class ObjSpec2:
         return self.properties['displayname']
 
 class Obj2:
-    def __init__(self, spec, state={}):
+    def __init__(self, spec, state={},context=''):
         self.obj_spec = spec
-        self.state = state
+        self.state = dict(spec.state)
+        self.state.update(state)
+        self.context = spec.context + context
+    def get_contexts(self):
+        return (self.context,) if self.context else ()
+    def key(self):
+        return self.properties['id']
+    def displayname(self):
+        return self.properties['displayname']
 
 # Used in constructing an obj spec to calculate a value from a parent obj spec
 # In theory should be a pure virtual base type etc

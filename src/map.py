@@ -74,12 +74,12 @@ class Map:
     def _expand_to_include(self, x, y):
         self.map_squares += [[]] * (y-len(self.map_squares))
         self.map_squares[y] += [MapSquare(Layers(),Layers(),Layers(),Layers())] * (x-len(self.map_squares[y]))
-    
-    def add_obj_at(self,x,y,obj):
+ 
+    def add_obj_at(self,x,y,spec,stratum=None):
         assert x>=0 and y>=0
-        stratum = obj.properties['stratum']
+        stratum = stratum or obj.properties['stratum']
         self._expand_to_include(x,y)
-        self.map_squares[y][x].add_obj(obj)
+        self.map_squares[y][x].add_obj(Obj2(spec))
 
     def make_map_from_tuples(self,init_map_tuples):
         self.map_squares = [ [ MapSquare( Layers(tup[0]), Layers(), Layers(), Layers(*tup[1:2]) ) for tup in row ] for row in init_map_tuples]
