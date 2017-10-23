@@ -21,8 +21,8 @@ class RemoveObj(Action):
     pass
 
 class ObjArgN:
-    def __init__(self,n):
-        self.n=n
+    def __init__(self,arg_num):
+        self.n=arg_num-1
 
 class Arg1(ObjArgN):
     def __init__(self):
