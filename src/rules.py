@@ -24,11 +24,11 @@ class ObjArgN:
     def __init__(self,n):
         self.n=n
 
-class Obj1(ObjArgN):
+class Arg1(ObjArgN):
     def __init__(self):
         ObjArgN.__init__(self,1)
 
-class Obj2(ObjArgN):
+class Arg2(ObjArgN):
     def __init__(self):
         ObjArgN.__init__(self,2)
 
@@ -39,9 +39,12 @@ class Event:
 class Rule:
     def __init__(self,verb,*args):
         self.verb = verb
+        # TODO: Separate args in str's and Action's in a more natural way
         self.in_obj_keys = []
+        args = list(args)
         while args and isinstance(args[0],str):
             self.in_obj_keys.append( args.pop(0) )
+        self.in_obj_keys = tuple(self.in_obj_keys)
         assert all( isinstance(arg,Action) for arg in args )
         self.out_actions = args
         self._populate_old_rule()
@@ -51,8 +54,8 @@ class Rule:
         for action in self.out_actions:
             if isinstance(action,Message):
                 self.msg = action.text
-            if isinstance(action,ChangeObj):
-                self.out_obj_packs[action.n] = Bunch(key=action.out_obj_key,state=action.out_obj_state)
+            if isinstance(action,ChangeObj) and isinstance(action.in_obj_xxx,ObjArgN):
+                self.out_obj_packs[action.in_obj_xxx.n] = Bunch(key=action.out_obj_key,state=action.out_obj_state)
 
 
     @staticmethod

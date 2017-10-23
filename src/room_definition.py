@@ -4,6 +4,7 @@ from src.room import Room
 from src.obj import Obj
 from src.graphic_source import BaseGraphic, CtxtGraphic, RandGraphic, AnimGraphic, TileFile
 from src.helpers import *
+from src.rules import * # TODO: Only what we need
 
 prop_defaults = Bunch(
     pickable =   Bunch(moveable=True , pickable=True , hoverable=True , can_support=False, walkable=True  ),
