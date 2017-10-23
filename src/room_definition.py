@@ -18,6 +18,8 @@ prop_defaults = Bunch(
 # All object assignment in RoomDefinition should be copy
 # Nowhere else should copy objects at all, except as a product of rules
 
+# TODO: Is this obsolete with new definition of room?
+
 class RoomDefinition:
     def __init__(self):
         from src.room import Room
@@ -26,9 +28,12 @@ class RoomDefinition:
         
     def make_room(self):
         return self.room.copy()
-        
+
     def add_rule(self,*args,**kwargs):
         self.room._rules.add_rule(*args,**kwargs)
+
+    def add_old_rule(self,*args,**kwargs):
+        self.room._rules.add_old_rule(*args,**kwargs)
     
     def add_player(self,x,y,orig_obj):
         obj = orig_obj.copy()

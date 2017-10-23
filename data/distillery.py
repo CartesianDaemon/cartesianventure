@@ -117,5 +117,8 @@ room.create_obj_at(6,4,room.defs.crucible)
 
 defs = room.defs
 
-room.add_rule('use',(defs.crucible,defs.crucible_w),(defs.well,'_pass'),msg="I fill the crucible from the well")
-room.add_rule('use',(defs.well,'_pass'),msg="I wash my face")
+room.add_old_rule('use',(defs.crucible,defs.crucible_w),(defs.well,'_pass'),msg="I fill the crucible from the well")
+room.add_old_rule('use',(defs.well,'_pass'),msg="I wash my face")
+
+# room.add_rule( 'use','crucible','well', Message("I fill the crucible from the well"), ChangeObj(Arg1(),'crucible_w') )
+
