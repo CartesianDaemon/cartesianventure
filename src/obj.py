@@ -241,7 +241,7 @@ class Obj:
         d = dict(
             # Number of objects is determined by number of text strings, including usually empty string at end
             move = Verb( "move ",    (" to " if not other_objs else " onto "), "" ),
-            push = Verb( "push", ""),
+            push = Verb( "push ", ""),
             use  = Verb( "use ", " with ", "") if self.pickable else Verb( "use ", "" ),
             examine = Verb( "examine ", "" ),
             # QQQ = Verb( "qqq ", ""),

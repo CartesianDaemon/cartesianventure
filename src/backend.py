@@ -69,7 +69,7 @@ class Backend:
                 assert arg_objs[0].pushable
                 objs = self._pushable_objects(dir)
                 if objs:
-                    for obj in objs:
+                    for obj in reversed(objs):
                         new_pos = obj.map_pos()+offset
                         self.move_obj(new_pos.x,new_pos.y,obj)
                     self.curr_state = State(
