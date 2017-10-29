@@ -5,11 +5,20 @@ from src.rules import Rules, Rule, Event
 import src.room_data as room_data   
 import random
 
+# Needs some clarification?
+class State:
+    def __init__(self,contexts={},cleanup_funcs=[],idle=False,chainable=False,
+        is_done = (lambda frac:frac>=1)):
+        self.contexts = contexts
+        self.cleanup_funcs = cleanup_funcs
+        self.idle = idle
+        self.chainable = chainable
+        self.is_done = is_done
+
 class Backend:
     def __init__(self):
         self.rules = Rules()
-        self.default_idle_state = ({},[],dict(idle=True),lambda frac:self._idle_done(frac))
-        self.curr_state = self.default_idle_state
+        self.curr_state = State(idle=True)
         self.pending_subactions = {}
         self.last_player_move = ('','')
         self.frac = 0
@@ -80,7 +89,8 @@ class Backend:
                 # TODO: also work if object is carried
         # TODO: create any entirely new objs
         self.store_new_event(event)
-        if rule.get_msg(): self.print_msg(rule.get_msg())
+        if rule.get_msg():
+            self.print_msg(rule.get_msg())
     
     def print_msg(self,msg):
         print ">>> " + msg
@@ -105,53 +115,53 @@ class Backend:
         return self.curr_room.map.get_mapsquare_at(pos).get_combined_mainobj()
 
     def advance_state(self):
-        for func in self.curr_state[1]:
-            func()
-        self.curr_state = self.default_idle_state
+        for cleanup_func in self.curr_state.cleanup_funcs:
+            cleanup_func()
+        self.curr_state = State(idle=True)
         if self.next_act_lambda:
             self.next_act_lambda()
             self.next_act_lambda = None
         else:
             self._idle_fidget()
-        
+       
     def state_is_idle(self):
-        return self.curr_state[2].get('idle')
-
+       return self.curr_state.idle
+       
     def state_is_chainable(self):
-        return self.curr_state[2].get('chainable')
-    
+        return self.curr_state.chainable
+        
     def start_move(self,dir):
         assert dir in 'lrud'
         if self.state_is_chainable():
             self.next_act_lambda = lambda: self.start_move(dir)
         else:
             if self.get_obj_at(self.player.map_pos() + offset_from_dir(dir)).walkable:
-                self.curr_state = ({self.player.map_rect():dir},[lambda:self._finish_move(dir)],dict(chainable=True))
-                self.next_act_lambda = lambda: self._begin_facing(dir)
+                self.curr_state = State(
+                    contexts = {self.player.map_rect():dir},
+                    cleanup_funcs = [lambda:self._finish_move(dir)],
+                    chainable=True)
+                self.next_act_lambda = lambda: self._begin_facing(dir) # What does this do?
             else:
                 self._begin_facing(dir)
     
     def finished_state(self,frac):
-        if len(self.curr_state)>=4:
-            return self.curr_state[3](frac)
-        else:
-            return frac>=1
-    
-    def _idle_done(self,frac):
-        return frac>=1
+        return self.curr_state.is_done(frac)
     
     def _idle_fidget(self):
         # Only do at random intervals
         random.seed()
         fidget = random.choice(('x','x','x','x','x','x1','x2'))
-        self.curr_state = ( {self.player.map_rect():fidget},[],dict(idle=True))
+        self.curr_state = State( contexts={self.player.map_rect():fidget},idle=True)
     
     def _finish_move(self,dir):
         self.player.x, self.player.y = self.player.map_pos() + offset_from_dir(dir)
         # TODO: Use map.move_char()
         
     def _begin_facing(self,dir):
-        self.curr_state = ({self.player.map_rect():"f"+dir},[],dict(idle=True),lambda frac:frac>=3 )
+        self.curr_state = State(
+            contexts={self.player.map_rect():"f"+dir},
+            idle=True,
+            is_done = lambda frac:frac>=3 )
     
     def get_blit_surfaces(self, frac, tile_size, window=Rect(0,0,15,7)):
         blit_surfaces = []
@@ -159,7 +169,7 @@ class Backend:
             for row in stratum:
                 for obj_tuple in row:
                     for obj in obj_tuple:
-                        blit_surface = obj.get_surface( tile_size,self.curr_state[0],frac )
+                        blit_surface = obj.get_surface( tile_size,self.curr_state.contexts,frac )
                         blit_surface.add_external_offset( obj.map_pos()*tile_size )
                         blit_surfaces.append(blit_surface)
         return blit_surfaces
