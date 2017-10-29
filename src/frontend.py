@@ -32,8 +32,6 @@ class Frontend:
         self.following_with_transitive_verb = None
         self.recent_presses = []
 
-        self.message = "Hello world!" # TODO: Remove me, use actual backend
-        
         self.backend = Backend()
         self.backend.load(default_room)
         
@@ -105,6 +103,9 @@ class Frontend:
         return self.get_screen_padding_lt() + pos * self.tile_size()
 
     def frac(self,ticks):
+        if self.backend.message:
+            # Workaround for non-advancing state, how should this work?
+            return 0
         return (ticks - self.state_begin_ticks) / float(self.state_duration)
     
     def finished_state(self,ticks):
@@ -137,8 +138,8 @@ class Frontend:
             self.draw_menu(self.menu_pos)
 
     def draw_dialogue(self,ticks):
-        if self.message:
-            self.blit_message(self.message)
+        if self.backend.message: # instead check current backend state?
+            self.blit_message(self.backend.message)
 
     def dir_from_key(self,event_key):
         dir_sets = ( (K_LEFT,K_RIGHT,K_UP,K_DOWN), (K_a,K_d,K_w,K_s) )
@@ -157,9 +158,9 @@ class Frontend:
             curr_obj = self.backend.get_obj_at(self.get_tile_from_screen_coords(event.pos))
         if (event.type == QUIT) or (event.type == KEYDOWN and event.key == K_F4 and event.mod&KMOD_ALT ):
             return 'quit'
-        elif self.message and event.type in (KEYDOWN,MOUSEBUTTONDOWN):
-            self.message = None
-        elif self.message and event.type in (MOUSEMOTION,):
+        elif self.backend.message and event.type in (KEYDOWN,MOUSEBUTTONDOWN):
+            self.advance_state(ticks)
+        elif self.backend.message and event.type in (MOUSEMOTION,):
             pass
         elif event.type == KEYDOWN:
             self.recent_presses.append(event.key)

@@ -15,6 +15,17 @@ class State:
         self.chainable = chainable
         self.is_done = is_done
 
+class IdleState(State):
+    def __init__(self):
+       self.idle = True
+
+class MessageState(State):
+    def __init__(self,backend):
+        State.__init__(self)
+        self.idle = True
+        self.cleanup_funcs = [ lambda : backend.clear_message() ]
+        self.is_done = lambda frac:False
+
 class Backend:
     def __init__(self):
         self.rules = Rules()
@@ -23,6 +34,7 @@ class Backend:
         self.last_player_move = ('','')
         self.frac = 0
         self.next_act_lambda = None
+        self.message = None
 
     def load(self,filename):
         # TODO: need copy?
@@ -31,7 +43,7 @@ class Backend:
         self.player = self.curr_room.player
     
     def do(self,verb,*arg_objs):
-        print (verb,)+tuple(obj.name for obj in arg_objs)
+        # print (verb,)+tuple(obj.name for obj in arg_objs)
         if verb=='move':
             assert len(arg_objs)==2
             obj = arg_objs[0]
@@ -39,11 +51,11 @@ class Backend:
             if target.can_support:
                 self.move_obj(target.x,target.y,obj)
             else:
-                self.print_msg("I can't put it there")
+                self.display_msg("I can't put it there")
         elif verb=='examine':
             assert len(arg_objs)==1
             msg = arg_objs[0].get_examine_text()
-            self.print_msg( msg if msg else "I don't see anything special")
+            self.display_msg( msg if msg else "I don't see anything special")
         else:
             rule = self.rules.get_rule(verb,*arg_objs)
             if not rule:
@@ -90,10 +102,14 @@ class Backend:
         # TODO: create any entirely new objs
         self.store_new_event(event)
         if rule.get_msg():
-            self.print_msg(rule.get_msg())
+            self.display_msg( rule.get_msg() )
     
-    def print_msg(self,msg):
-        print ">>> " + msg
+    def clear_message(self):
+        self.message = None
+
+    def display_msg(self,msg):
+        self.message = msg
+        self.curr_state = MessageState(self)
     
     def store_new_event(self,event):
         # currently only stored in links from objects, but may want a list of "initial events" which don't depend on any
