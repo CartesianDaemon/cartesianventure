@@ -81,6 +81,9 @@ class TestHelpers(unittest.TestCase):
 #         #    var = Maybe(None)
 #         #    var.capitalize
 
+    def test_dir(self):
+        self.assertEquals( offset_from_dir('l'), (-1,0))
+
 class TestMultipleImport(unittest.TestCase):
     def test_a(self):
         os.blah = "foo"
@@ -219,8 +222,12 @@ class TestBackend(unittest.TestCase):
         self.assertEqual(crucible.get_remaining_verb_arity('move'),1)
         self.assertEqual(crucible.get_remaining_verb_arity('move',crucible),0)
     
-    def do_verb(self,verb,x1,y1,x2,y2):
-        self.backend_distillery.do(verb,self.obj_at(x1,y1),self.obj_at(x2,y2))
+    def do_verb(self,verb,x1,y1,x2=None,y2=None):
+        if x2:
+            self.backend_distillery.do(verb,self.obj_at(x1,y1),self.obj_at(x2,y2))
+        else:
+            self.backend_distillery.do(verb,self.obj_at(x1,y1))
+
 
     def test_verb_move(self):
         self.assertEquals(self.obj_at(6,4).key,'crucible')
@@ -232,6 +239,30 @@ class TestBackend(unittest.TestCase):
     # Then separate tests don't work independently
     def test_verb_move2(self):
         self.test_verb_move()
+      
+    def _do_move(self,dir):
+        self.backend_distillery.start_move(dir)
+        self.backend_distillery.advance_state()
+       
+    def test_player_move(self):
+        player = self.backend_distillery.player
+        self.assertEqual(player.map_pos(),(2,3))
+        self._do_move('d')
+        self.assertEqual(player.map_pos(),(2,4))
+        self._do_move('r')
+        self._do_move('r')
+        self._do_move('r')
+        self.assertEqual(player.map_pos(),(5,4))
+
+    def test_push(self):
+        player = self.backend_distillery.player
+        self.test_player_move()
+        self._use_1st_crucible_with_well()
+        self.do_verb('push', 6,4)
+        self.backend_distillery.advance_state()
+        self.assertEquals(player.map_pos(),(6,4))
+        self.assertEquals(self.obj_at(7,4).key,'crucible_w')
+        self.assertEquals(self.obj_at(6,4).key,'floorboards')
         
     def test_verb_move_twice(self):
         self.assertEquals(self.obj_at(6,4).key,'crucible')
@@ -244,12 +275,15 @@ class TestBackend(unittest.TestCase):
         self.assertEquals(len(self.obj_at(7,4).get_undoable_events()),0)
         self.assertEquals(len(self.obj_at(7,4).get_redoable_events()),0)
 
-    def test_verb_use(self):
+    def _use_1st_crucible_with_well(self):
         self.assertEquals(self.obj_at(6,4).key,'crucible')
         self.assertEquals(self.obj_at(10,3).key,'well')
         self.do_verb('use', 6,4 , 10,3)
         self.assertEquals(self.obj_at(6,4).key,'crucible_w')
         self.assertEquals(len(self.obj_at(6,4).get_undoable_events()),1)
+
+    def test_verb_use(self):
+        self._use_1st_crucible_with_well()
     
     def test_map_load(self):
         self.assertEquals(self.obj_at(1,4).key,'floorboards')
