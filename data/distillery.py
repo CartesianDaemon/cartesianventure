@@ -123,3 +123,5 @@ defs = room.defs
 
 room.add_rule( 'use','crucible','well', Message("I fill the crucible from the well"), ChangeObj(Arg1(),'crucible_w') )
 room.add_rule( 'use','well', Message("I wash my face") )
+
+room.add_rule( 'use','crucible_w','crucible_w', Endgame("Congratulations!\n\nYou have won.") )

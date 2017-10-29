@@ -1,18 +1,19 @@
 # Internal modules
 from src.helpers import *
 from src.map import Map, MapSquare
-from src.rules import Rules, Rule, Event
+from src.rules import Rules, Rule, Event, Endgame
 import src.room_data as room_data   
 import random
 
 # Needs some clarification?
 class State:
-    def __init__(self,contexts={},cleanup_funcs=[],idle=False,chainable=False,
+    def __init__(self,contexts={},cleanup_funcs=[],idle=False,chainable=False,endgame=False,
         is_done = (lambda frac:frac>=1)):
         self.contexts = contexts
         self.cleanup_funcs = cleanup_funcs
         self.idle = idle
         self.chainable = chainable
+        self.endgame = endgame
         self.is_done = is_done
 
 class IdleState(State):
@@ -25,6 +26,11 @@ class MessageState(State):
         self.idle = True
         self.cleanup_funcs = [ lambda : backend.clear_message() ]
         self.is_done = lambda frac:False
+
+class EndState(MessageState):
+    def __init__(self,backend):
+        MessageState.__init__(self,backend)
+        self.endgame = True
 
 class Backend:
     def __init__(self):
@@ -100,6 +106,10 @@ class Backend:
                 # TODO: create extra new objs, eg. shavings
                 # TODO: also work if object is carried
         # TODO: create any entirely new objs
+        for action in rule.out_actions:
+            # TODO: replace old rules with implementation of actions
+            if isinstance(action, Endgame):
+                self.end_game(action.text)
         self.store_new_event(event)
         if rule.get_msg():
             self.display_msg( rule.get_msg() )
@@ -126,11 +136,17 @@ class Backend:
         
     def convert_obj(self,old_obj,new_obj):
         self.curr_room.map.convert_obj(old_obj,new_obj)
-    
+
+    def end_game(self, msg):
+        self.message = msg
+        self.curr_state = EndState(self)
+
     def get_obj_at(self,pos):
         return self.curr_room.map.get_mapsquare_at(pos).get_combined_mainobj()
 
     def advance_state(self):
+        if self.curr_state.endgame:
+            return
         for cleanup_func in self.curr_state.cleanup_funcs:
             cleanup_func()
         self.curr_state = State(idle=True)

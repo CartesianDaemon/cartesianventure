@@ -8,6 +8,10 @@ class Message(Action):
     def __init__(self, text):
         self.text = text
 
+class Endgame(Action):
+    def __init__(self, text):
+        self.text = text
+
 class ChangeObj(Action):
     def __init__(self,in_obj_xxx,out_obj_key):
         assert isinstance(in_obj_xxx,ObjArgN) # or isinstance(in_obj_xxx, ????) # Position object or (x,Y) coords with optional stratum
@@ -51,6 +55,7 @@ class Rule:
 
     def _populate_old_rule(self):
         self.out_obj_packs = [ '_pass' for _ in self.in_obj_keys ]
+        self.msg = ""
         for action in self.out_actions:
             if isinstance(action,Message):
                 self.msg = action.text
