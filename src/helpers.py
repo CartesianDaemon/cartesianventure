@@ -6,6 +6,24 @@ from numbers import Number
 from pygame import Rect
 import random
 
+class Result:
+    def __init__(self):
+        self.value = None
+        self.error = None
+    def unwrap(self):
+        assert self.value
+        return self.value
+
+class Ok(Result):
+    def __init__(self,value):
+        Result.__init__(self)
+        self.value = value
+
+class Error(Result):
+    def __init__(self,error):
+        Result.__init__(self)
+        self.error = error
+
 class Bunch(dict):
     def __getattr__(self, attr):
         try:
@@ -137,3 +155,11 @@ def offset_from_dir(dir):
     # if dir=='' : return (0,0)
     print "dir = " + str(dir)
     raise NotImplemented
+
+def dir_from_offset(offset):
+    if offset==(-1,0): return Ok('l')
+    if offset==(+1,0): return Ok('r')
+    if offset==(0,-1): return Ok('u')
+    if offset==(0,+1): return Ok('d')
+    return Error(NotImplemented)
+

@@ -58,6 +58,26 @@ class Backend:
                 self.move_obj(target.x,target.y,obj)
             else:
                 self.display_msg("I can't put it there")
+        if verb=='push':
+            assert len(arg_objs)==1
+            dx,dy = arg_objs[0].map_pos - self.player.map_pos
+            dir = dir_from_offset( (dx,dy) )
+            if isinstance(dir,Error):
+                self.display_msg("I need to be next to it to push it")
+            else:
+                assert arg_objs[0].pushable
+                objs = self._pushable_objects(dir)
+                if objs:
+                    for obj in objs:
+                        new_pos = obj.map_pos+dir
+                        self.move_obj(new_pos.x,new_pos.y,obj)
+                    self.curr_state = State(
+                        contexts = {self.player.map_rect():dir},
+                        cleanup_funcs = [lambda:self._finish_move(dir)],
+                        chainable=True)
+                    self.next_act_lambda = lambda: self._begin_facing(dir) # What does this do?
+                else:
+                    self.display_msg("I can't push it")
         elif verb=='examine':
             assert len(arg_objs)==1
             msg = arg_objs[0].get_examine_text()
@@ -71,6 +91,19 @@ class Backend:
                 self._do_rule(rule,arg_objs)
                 # print(self.curr_room.map)
     
+    def _pushable_objects(self,dir):
+        pos = self.player.map_pos
+        objs = []
+        while True:
+            pos += dir
+            obj = self.get_obj_at(pos)
+            if obj.walkable:
+                return objs
+            elif obj.pushable:
+                objs += [obj]
+            else:
+                return []
+
     def do_undo(self,undo_event):
         print "UNDO"
     

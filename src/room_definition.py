@@ -8,6 +8,7 @@ from src.rules import * # TODO: Only what we need
 
 prop_defaults = Bunch(
     pickable =   Bunch(moveable=True , pickable=True , hoverable=True , can_support=False, walkable=True  ),
+    pushable =   Bunch(moveable=False , pickable=False , hoverable=True , can_support=False, walkable=False, pushable=True  ),
     moveable =   Bunch(moveable=True , pickable=False, hoverable=True , can_support=False, walkable=False ),
     stackable =  Bunch(moveable=True , pickable=False, hoverable=True , can_support=False, walkable=False ),
     fixed =      Bunch(moveable=False, pickable=False, hoverable=True , can_support=False, walkable=False ),
