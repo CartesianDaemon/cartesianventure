@@ -31,6 +31,8 @@ class Frontend:
         self.menu_hit_idx = None
         self.following_with_transitive_verb = None
         self.recent_presses = []
+
+        self.message = "Hello world!" # TODO: Remove me, use actual backend
         
         self.backend = Backend()
         self.backend.load(default_room)
@@ -87,8 +89,9 @@ class Frontend:
             self.advance_state(ticks)
             if self.backend.state_is_idle() and self.recent_presses:
                 self.backend.start_move( self.dir_from_key(self.recent_presses[-1]) )
-        self.draw_all(ticks)
+        self.draw_backend(ticks)
         self.handle_and_draw_menu(ticks)
+        self.draw_dialogue(ticks)
         pygame.display.flip()
         sys.stdout.flush()
 
@@ -111,7 +114,7 @@ class Frontend:
         self.backend.advance_state()
         self.state_begin_ticks = ticks
     
-    def draw_all(self,ticks):
+    def draw_backend(self,ticks):
         self.screen.blit(self.background, (0, 0))
         for tile_surface in self.backend.get_blit_surfaces( self.frac(ticks), self.tile_size() ):
             tile_surface.blit_to( self.screen, self.get_screen_padding_lt() )
@@ -133,6 +136,10 @@ class Frontend:
         if self.menu_pos:
             self.draw_menu(self.menu_pos)
 
+    def draw_dialogue(self,ticks):
+        if self.message:
+            self.blit_message(self.message)
+
     def dir_from_key(self,event_key):
         dir_sets = ( (K_LEFT,K_RIGHT,K_UP,K_DOWN), (K_a,K_d,K_w,K_s) )
         dir_keys = "lrud"
@@ -150,6 +157,10 @@ class Frontend:
             curr_obj = self.backend.get_obj_at(self.get_tile_from_screen_coords(event.pos))
         if (event.type == QUIT) or (event.type == KEYDOWN and event.key == K_F4 and event.mod&KMOD_ALT ):
             return 'quit'
+        elif self.message and event.type in (KEYDOWN,MOUSEBUTTONDOWN):
+            self.message = None
+        elif self.message and event.type in (MOUSEMOTION,):
+            pass
         elif event.type == KEYDOWN:
             self.recent_presses.append(event.key)
             dir = self.dir_from_key(event.key)
