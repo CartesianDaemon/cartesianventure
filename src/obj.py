@@ -175,6 +175,7 @@ class Obj:
         # Object properties, assume need to be updated by make_obj
         self.moveable = None
         self.pickable = None
+        self.pushable = None
         self.hoverable = None
         self.can_support = None
         self.walkable = None
@@ -230,14 +231,20 @@ class Obj:
         return self.examine_text
     
     def _enabled_verbs(self):
-        return ['move','use','examine'] if self.pickable else ['use','examine']
+        l = []
+        if self.pickable: l += [ 'move' ]
+        if self.pushable: l += [ 'push' ]
+        l += [ 'use', 'examine'] # + [ 'QQQ']
+        return l
             
     def _get_verb_def(self,verb,*other_objs):
         d = dict(
             # Number of objects is determined by number of text strings, including usually empty string at end
             move = Verb( "move ",    (" to " if not other_objs else " onto "), "" ),
+            push = Verb( "push", ""),
             use  = Verb( "use ", " with ", "") if self.pickable else Verb( "use ", "" ),
             examine = Verb( "examine ", "" ),
+            # QQQ = Verb( "qqq ", ""),
         )
         return d[verb]
 

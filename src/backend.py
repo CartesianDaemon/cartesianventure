@@ -116,7 +116,7 @@ class Backend:
         pass
         
     def do_default_rule_failure(self):
-        self.print_msg("I don't know how to do that")
+        self.display_msg("I don't know how to do that")
     
     def move_obj(self,x,y,obj):
         self.curr_room.map.move_to(x,y,obj)

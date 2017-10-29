@@ -108,6 +108,7 @@ room.add_obj_templates( default_props = prop_defaults.pickable,
 )
 
 room.create_obj_at(6,4,room.defs.crucible)
+room.create_obj_at(9,4,room.defs.crucible)
 
 ##############################################################
 #
