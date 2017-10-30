@@ -95,8 +95,18 @@ class BaseGraphic:
             self.load(size)
         surface = BlitSurface( self.surfaces[idx] if not is_transparent else self.get_transparent_surfaces()[idx] )
         surface.set_internal_offset( surface.get_rect().size - Pos(size) )
+        if 'offsets' in kwargs and kwargs['offsets']:
+            assert len(kwargs['offsets']) == 1
+            assert kwargs['offsets'][0] in "lurd"
+            surface.add_external_offset(self._calc_slide_offset(size,kwargs['offsets'][0],kwargs['frac']))
         return surface
-    
+
+    @staticmethod
+    def _calc_slide_offset(size,dir,frac):
+        max_offset = size * offset_from_dir(dir)
+        rel_offset = (int(max_offset.x*frac),int(max_offset.y*frac))
+        return rel_offset
+
     def nframes(self):
         return len(self.surfaces)
 
@@ -120,12 +130,12 @@ class AnimGraphic(BaseGraphic):
     def get_surface(self,pos,size, *args,**kwargs):
         idx = self.frames[int(kwargs['frac']*len(self.frames))]
         surface = BaseGraphic.get_surface(self,pos,size,*args,idx=idx,**kwargs)
-        if self.slide:
-            assert self.slide=='linear'
-            assert kwargs['context'] in 'udlr'
-            max_offset = size * offset_from_dir(kwargs['context'])
-            rel_offset = (int(max_offset.x*kwargs['frac']),int(max_offset.y*kwargs['frac']))
-            surface.add_external_offset( rel_offset )
+        #if self.slide:
+        #    # Calculate this ourselves, but should be the same if we didn't and relied on offsets (?)
+        #    # override that if necessary?
+        #    assert self.slide=='linear'
+        #    assert kwargs['context'] in 'udlr'
+        #    surface.add_external_offset( _calc_slide_offset(size,kwargs['context'],kwargs['frac']) )
         return surface
         
 class CtxtGraphic:
@@ -139,5 +149,7 @@ class CtxtGraphic:
         # tile = self.tiles.get(context,self.tiles['x'])
         ctxt, tile = first( (context, self.tiles.get(context)) for context in context_tuple ) or ('x',self.tiles['x']) # Crashes if no match and no default
         kwargs['context'] = ctxt
+        if kwargs['offsets']:
+            print kwargs['offsets']
         return tile.get_surface(pos,size,*args,**kwargs)
 

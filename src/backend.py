@@ -7,9 +7,11 @@ import random
 
 # Needs some clarification?
 class State:
-    def __init__(self,contexts={},cleanup_funcs=[],idle=False,chainable=False,endgame=False,
-        is_done = (lambda frac:frac>=1)):
+    def __init__(self,contexts={},offsets={},cleanup_funcs=[],
+            idle=False,chainable=False,endgame=False,
+            is_done = (lambda frac:frac>=1)):
         self.contexts = contexts
+        self.offsets = offsets
         self.cleanup_funcs = cleanup_funcs
         self.idle = idle
         self.chainable = chainable
@@ -74,6 +76,7 @@ class Backend:
                         self.move_obj(new_pos.x,new_pos.y,obj)
                     self.curr_state = State(
                         contexts = {self.player.map_rect():dir},
+                        offsets = {obj.map_rect():dir for obj in objs+[self.player,]},
                         cleanup_funcs = [lambda:self._finish_move(dir)],
                         chainable=True)
                     self.next_act_lambda = lambda: self._begin_facing(dir) # What does this do?
@@ -204,6 +207,7 @@ class Backend:
             if self.get_obj_at(self.player.map_pos() + offset_from_dir(dir)).walkable:
                 self.curr_state = State(
                     contexts = {self.player.map_rect():dir},
+                    offsets = {self.player.map_rect():dir},
                     cleanup_funcs = [lambda:self._finish_move(dir)],
                     chainable=True)
                 self.next_act_lambda = lambda: self._begin_facing(dir) # What does this do?
@@ -235,7 +239,11 @@ class Backend:
             for row in stratum:
                 for obj_tuple in row:
                     for obj in obj_tuple:
-                        blit_surface = obj.get_surface( tile_size,self.curr_state.contexts,frac )
+                        contexts = self.curr_state.contexts.iteritems()  
+                        offsets = self.curr_state.offsets.iteritems()  
+                        curr_contexts =tuple( context for rect,context in contexts if obj.is_in(rect) )
+                        curr_offsets =tuple( offset for rect,offset in offsets if obj.is_in(rect) )
+                        blit_surface = obj.get_surface( tile_size,curr_contexts,curr_offsets,frac )
                         blit_surface.add_external_offset( obj.map_pos()*tile_size )
                         blit_surfaces.append(blit_surface)
         return blit_surfaces

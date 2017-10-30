@@ -204,12 +204,15 @@ class Obj:
         
     def map_rect(self):
         return (self.x,self.y,1,1)
+
+    def is_in(self,rect):
+        return Rect(rect).collidepoint(self.x,self.y)
     
-    def get_surface(self,tile_size,curr_state,frac=0):
+    def get_surface(self,tile_size,curr_contexts,curr_offsets,frac=0):
         is_transparent = self.transparent or self.transparent=='atbottomofscreen' and pos[1]==7 and 0 < pos[0] < 14
-        state_tuple = tuple(context for rect,context in curr_state.iteritems() if Rect(rect).collidepoint(self.x,self.y) )
-        context_tuple = state_tuple + self.get_contexts()
-        return self.graphic_source.get_surface( (self.x,self.y), tile_size, context_tuple, is_transparent, frac=frac)
+        context_tuple = curr_contexts + self.get_contexts()
+        return self.graphic_source.get_surface( (self.x,self.y), tile_size, context_tuple, is_transparent,
+            offsets=curr_offsets,frac=frac)
         
     def is_hoverable(self):
         return self.hoverable;
