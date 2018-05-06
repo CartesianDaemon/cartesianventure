@@ -314,6 +314,7 @@ class TestFrontend(unittest.TestCase):
     def test_splash(self):
         self.frontend.splash(timeout_ms=10)
     
+    @unittest.expectedFailure
     def test_step(self):
         self.frontend.loop_step(0)
         
