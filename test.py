@@ -306,6 +306,14 @@ class TestBackend(unittest.TestCase):
 @unittest.skipIf(len(sys.argv)>1,"skip frontend for quickness")
 class TestFrontend(unittest.TestCase):
     def setUp(self):
+        try:
+            pygame.init()
+            pygame.display.set_mode((600,300))
+        except pygame.error as e:
+            if str(e)=="No available video device":
+                raise unittest.SkipTest("No pygame display")
+            else:
+                raise e
         self.frontend = Frontend(default_room='distillery')
     
     def test_1setup(self):
